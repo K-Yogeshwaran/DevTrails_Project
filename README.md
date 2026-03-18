@@ -21,11 +21,11 @@
 3. [System Architecture](#3-system-architecture)
 4. [Parametric Trigger Engine](#4-parametric-trigger-engine)
 5. [Training Data - Sources & Methodology](#5-training-data--sources--methodology)
-6. [AI / ML Features](#5-ai--ml-features)
-7. [Trigger → Payout Flow](#6-trigger--payout-flow)
-8. [Complete Tech Stack](#7-complete-tech-stack)
-9. [Build Status](#8-build-status)
-10. [Team](#11-team)
+6. [AI / ML Features](#6-ai--ml-features)
+7. [Trigger → Payout Flow](#7-trigger--payout-flow)
+8. [Complete Tech Stack](#8-complete-tech-stack)
+9. [Build Status](#9-build-status)
+10. [Team](#10-team)
 
 ---
 
