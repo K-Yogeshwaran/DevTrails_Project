@@ -73,7 +73,7 @@ The key word is **parametric** — instead of the worker filing a claim, the sys
 
 ## 3. System Architecture
 
-![System Architecture](docs/architecture.svg)
+![System Architecture](Architecture_Diagrams/architecture.svg)
 
 GigShield is built across 4 layers, each with a clearly defined responsibility.
 
@@ -156,7 +156,7 @@ Trigger_System/
 
 ### 5.1 Premium Calculator — XGBoost Model
 
-![Data Flow](docs/dataflow.svg)
+![Data Flow](Architecture_Diagrams/dataflow.svg)
 
 #### The Income-at-Risk Model
 
@@ -271,7 +271,7 @@ Final payout = MIN(calculated_payout, remaining_weekly_cap)
 
 ## 7. Complete Tech Stack
 
-![Tech Stack](docs/techstack.svg)
+![Tech Stack](Architecture_Diagrams/techstack.svg)
 
 | Layer | Technology | Purpose | Port |
 |---|---|---|---|
