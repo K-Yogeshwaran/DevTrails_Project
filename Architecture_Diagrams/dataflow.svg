@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="900" height="480" style="background:#0f1117;font-family:'Segoe UI',sans-serif;">
+
+  <defs>
+    <pattern id="grid2" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1e2130" stroke-width="0.5"/>
+    </pattern>
+    <marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+    <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="480" fill="#0f1117"/>
+  <rect width="900" height="480" fill="url(#grid2)"/>
+
+  <text x="450" y="32" text-anchor="middle" fill="#f1f5f9" font-size="16" font-weight="700" letter-spacing="1">Trigger → Payout · Data Flow</text>
+  <text x="450" y="50" text-anchor="middle" fill="#64748b" font-size="10">Zero-touch parametric claim processing pipeline</text>
+
+  <!-- Step boxes horizontal flow -->
+  <!-- Step 1 -->
+  <rect x="20" y="70" width="120" height="80" rx="10" fill="#0c1a2e" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="80" y="96" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">STEP 1</text>
+  <text x="80" y="112" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Disruption</text>
+  <text x="80" y="126" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Detected</text>
+  <text x="80" y="142" text-anchor="middle" fill="#3b82f6" font-size="8">Open-Meteo / CPCB</text>
+
+  <line x1="140" y1="110" x2="165" y2="110" stroke="#e2e8f0" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+  <!-- Step 2 -->
+  <rect x="165" y="70" width="120" height="80" rx="10" fill="#0c2218" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="225" y="96" text-anchor="middle" fill="#86efac" font-size="10" font-weight="700">STEP 2</text>
+  <text x="225" y="112" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Threshold</text>
+  <text x="225" y="126" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Check</text>
+  <text x="225" y="142" text-anchor="middle" fill="#16a34a" font-size="8">Rain 30mm · AQI 200</text>
+
+  <line x1="285" y1="110" x2="310" y2="110" stroke="#e2e8f0" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+  <!-- Step 3 -->
+  <rect x="310" y="70" width="120" height="80" rx="10" fill="#1a1040" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="370" y="96" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="700">STEP 3</text>
+  <text x="370" y="112" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Dedup</text>
+  <text x="370" y="126" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Check</text>
+  <text x="370" y="142" text-anchor="middle" fill="#7c3aed" font-size="8">1 trigger / hr / zone</text>
+
+  <line x1="430" y1="110" x2="455" y2="110" stroke="#e2e8f0" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+  <!-- Step 4 -->
+  <rect x="455" y="70" width="120" height="80" rx="10" fill="#1c1400" stroke="#d97706" stroke-width="1.5"/>
+  <text x="515" y="96" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="700">STEP 4</text>
+  <text x="515" y="112" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Policy</text>
+  <text x="515" y="126" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Verified</text>
+  <text x="515" y="142" text-anchor="middle" fill="#d97706" font-size="8">Active week check</text>
+
+  <line x1="575" y1="110" x2="600" y2="110" stroke="#e2e8f0" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+  <!-- Step 5 -->
+  <rect x="600" y="70" width="120" height="80" rx="10" fill="#200a0a" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="660" y="96" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="700">STEP 5</text>
+  <text x="660" y="112" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Fraud</text>
+  <text x="660" y="126" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Detection</text>
+  <text x="660" y="142" text-anchor="middle" fill="#dc2626" font-size="8">ML anomaly score</text>
+
+  <line x1="720" y1="110" x2="745" y2="110" stroke="#e2e8f0" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+  <!-- Step 6 -->
+  <rect x="745" y="70" width="135" height="80" rx="10" fill="#0a1f0a" stroke="#15803d" stroke-width="1.5"/>
+  <text x="812" y="96" text-anchor="middle" fill="#86efac" font-size="10" font-weight="700">STEP 6</text>
+  <text x="812" y="112" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Payout</text>
+  <text x="812" y="126" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="600">Calculated</text>
+  <text x="812" y="142" text-anchor="middle" fill="#15803d" font-size="8">Hourly rate × hours lost</text>
+
+  <!-- Fail branches -->
+  <!-- Threshold fail -->
+  <line x1="225" y1="150" x2="225" y2="185" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+  <rect x="170" y="185" width="110" height="30" rx="6" fill="#1a0505" stroke="#7f1d1d" stroke-width="1"/>
+  <text x="225" y="205" text-anchor="middle" fill="#fca5a5" font-size="9">Below threshold → skip</text>
+
+  <!-- Dedup fail -->
+  <line x1="370" y1="150" x2="370" y2="185" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+  <rect x="315" y="185" width="110" height="30" rx="6" fill="#1a0505" stroke="#7f1d1d" stroke-width="1"/>
+  <text x="370" y="205" text-anchor="middle" fill="#fca5a5" font-size="9">Duplicate → blocked</text>
+
+  <!-- Policy fail -->
+  <line x1="515" y1="150" x2="515" y2="185" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+  <rect x="460" y="185" width="110" height="30" rx="6" fill="#1a0505" stroke="#7f1d1d" stroke-width="1"/>
+  <text x="515" y="205" text-anchor="middle" fill="#fca5a5" font-size="9">No policy → no payout</text>
+
+  <!-- Fraud fail -->
+  <line x1="660" y1="150" x2="660" y2="185" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+  <rect x="605" y="185" width="110" height="30" rx="6" fill="#1a0505" stroke="#7f1d1d" stroke-width="1"/>
+  <text x="660" y="205" text-anchor="middle" fill="#fca5a5" font-size="9">Flagged → manual review</text>
+
+  <!-- Payout flow -->
+  <line x1="812" y1="150" x2="812" y2="230" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+  <!-- Payout calc box -->
+  <rect x="200" y="230" width="620" height="90" rx="10" fill="#071a10" stroke="#16a34a" stroke-width="1"/>
+  <text x="510" y="252" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">Payout Formula</text>
+
+  <rect x="216" y="262" width="180" height="46" rx="6" fill="#052e16" stroke="#16a34a" stroke-width="0.5"/>
+  <text x="306" y="281" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">Hourly Rate</text>
+  <text x="306" y="296" text-anchor="middle" fill="#86efac" font-size="9">Daily earnings ÷ active hours</text>
+  <text x="306" y="308" text-anchor="middle" fill="#166534" font-size="8">e.g. ₹900 ÷ 8hrs = ₹112/hr</text>
+
+  <text x="412" y="289" text-anchor="middle" fill="#4ade80" font-size="16" font-weight="700">×</text>
+
+  <rect x="422" y="262" width="140" height="46" rx="6" fill="#052e16" stroke="#16a34a" stroke-width="0.5"/>
+  <text x="492" y="281" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">Disrupted Hours</text>
+  <text x="492" y="296" text-anchor="middle" fill="#86efac" font-size="9">From trigger event</text>
+  <text x="492" y="308" text-anchor="middle" fill="#166534" font-size="8">e.g. 4 hours</text>
+
+  <text x="568" y="289" text-anchor="middle" fill="#4ade80" font-size="16" font-weight="700">×</text>
+
+  <rect x="578" y="262" width="130" height="46" rx="6" fill="#052e16" stroke="#16a34a" stroke-width="0.5"/>
+  <text x="643" y="281" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">Persona Factor</text>
+  <text x="643" y="296" text-anchor="middle" fill="#86efac" font-size="9">Food 1.2 · Grocery 1.0</text>
+  <text x="643" y="308" text-anchor="middle" fill="#166534" font-size="8">Ecommerce 0.85</text>
+
+  <text x="714" y="289" text-anchor="middle" fill="#4ade80" font-size="16" font-weight="700">=</text>
+
+  <rect x="724" y="262" width="84" height="46" rx="6" fill="#14532d" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="766" y="281" text-anchor="middle" fill="#86efac" font-size="10" font-weight="600">Payout</text>
+  <text x="766" y="297" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="700">₹538</text>
+  <text x="766" y="308" text-anchor="middle" fill="#166534" font-size="7">≤ coverage cap</text>
+
+  <line x1="510" y1="320" x2="510" y2="358" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+  <!-- Dispatch row -->
+  <rect x="100" y="358" width="700" height="72" rx="10" fill="#071a10" stroke="#16a34a" stroke-width="1"/>
+  <text x="450" y="378" text-anchor="middle" fill="#86efac" font-size="11" font-weight="700">Instant Dispatch · &lt; 5 minutes end-to-end</text>
+
+  <rect x="120" y="386" width="130" height="34" rx="6" fill="#052e16" stroke="#15803d" stroke-width="1"/>
+  <text x="185" y="401" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">Razorpay Sandbox</text>
+  <text x="185" y="414" text-anchor="middle" fill="#16a34a" font-size="8">UPI transfer mock</text>
+
+  <rect x="270" y="386" width="130" height="34" rx="6" fill="#052e16" stroke="#15803d" stroke-width="1"/>
+  <text x="335" y="401" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">WebSocket Push</text>
+  <text x="335" y="414" text-anchor="middle" fill="#16a34a" font-size="8">Worker app notified</text>
+
+  <rect x="420" y="386" width="130" height="34" rx="6" fill="#052e16" stroke="#15803d" stroke-width="1"/>
+  <text x="485" y="401" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">Claim Saved</text>
+  <text x="485" y="414" text-anchor="middle" fill="#16a34a" font-size="8">status = paid · DB write</text>
+
+  <rect x="570" y="386" width="130" height="34" rx="6" fill="#052e16" stroke="#15803d" stroke-width="1"/>
+  <text x="635" y="401" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">Dashboard Update</text>
+  <text x="635" y="414" text-anchor="middle" fill="#16a34a" font-size="8">Loss ratio recalculated</text>
+
+  <!-- Timer badge -->
+  <rect x="730" y="390" width="60" height="26" rx="13" fill="#14532d" stroke="#4ade80" stroke-width="1"/>
+  <text x="760" y="407" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="700">&lt; 5 min</text>
+
+</svg>
