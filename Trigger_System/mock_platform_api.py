@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request
 from datetime import datetime, timezone
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
 platform_state = {
     "swiggy": {
@@ -150,6 +151,33 @@ def mark_platform_degraded(platform_name):
 
     return jsonify({"message": f"{platform_name} marked as DEGRADED"})
 
+import random
+
+@app.route("/api/platform/verify-user", methods=["POST"])
+def verify_platform_user():
+    data = request.get_json()
+    platform = data.get("platform")
+
+    if not platform or platform not in platform_state:
+        return jsonify({"error": "Invalid platform"}), 400
+
+    avg_hours = random.randint(35, 60)         # weekly hours
+    avg_income = random.randint(4000, 9000)    # weekly income
+
+    experience = random.randint(3, 24)         # months
+    days_per_week = random.randint(5, 7)
+
+    shift = random.choice(["morning", "afternoon", "evening"])
+
+    return jsonify({
+        "platformUserId": f"{platform.upper()}_{random.randint(100,999)}",
+        "avgWeeklyHours": avg_hours,
+        "avgWeeklyIncome": avg_income,
+        "experienceMonths": experience,
+        "daysPerWeek": days_per_week,
+        "shift": shift
+    })
+
 
 if __name__ == "__main__":
     print("Mock Platform API running on http://localhost:5002")
@@ -159,4 +187,5 @@ if __name__ == "__main__":
     print("  POST /api/status/<platform>/down")
     print("  POST /api/status/<platform>/up")
     print("  POST /api/status/<platform>/degraded")
+    print(" POST /api/status/<platform>/verify-user")
     app.run(host="0.0.0.0", port=5002, debug=False)

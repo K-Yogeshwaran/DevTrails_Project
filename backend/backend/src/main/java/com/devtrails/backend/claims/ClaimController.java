@@ -1,12 +1,15 @@
 package com.devtrails.backend.claims;
 
-
+import com.devtrails.backend.claimlog.ClaimProcessingLog;
+import com.devtrails.backend.claimlog.ClaimProcessingLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/claims")
@@ -16,44 +19,52 @@ import java.util.Map;
 public class ClaimController {
 
     private final ClaimService claimService;
+    private final ClaimProcessingLogRepository logRepo;
+    private final ClaimRepository claimRepo;
 
-    @GetMapping("/{workerId}")
+    // GET /api/claims/worker/{workerId}
+    @GetMapping("/worker/{workerId}")
     public ResponseEntity<List<ClaimDTO.ClaimSummary>> getWorkerClaims(
             @PathVariable String workerId) {
         return ResponseEntity.ok(claimService.getWorkerClaims(workerId));
     }
 
+    // GET /api/claims/detail/{claimId}
     @GetMapping("/detail/{claimId}")
-    public ResponseEntity<?> getClaimById(@PathVariable String claimId) {
-        try {
-            return ResponseEntity.ok(claimService.getClaimById(claimId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<ClaimDTO.ClaimResponse> getClaimById(
+            @PathVariable String claimId) {
+        return ResponseEntity.ok(claimService.getClaimById(claimId));
+    }
+
+    // GET /api/claims/logs/{claimId} — processing stage logs
+    @GetMapping("/logs/{claimId}")
+    public ResponseEntity<List<ClaimProcessingLog>> getClaimLogs(
+            @PathVariable String claimId) {
+        return ResponseEntity.ok(logRepo.findByClaimIdOrderByCreatedAtAsc(claimId));
+    }
+
+    // GET /api/claims/event/{eventId} — find claim by trigger event_id
+    @GetMapping("/event/{eventId}")
+    public ResponseEntity<?> getClaimByEventId(@PathVariable String eventId) {
+        Optional<Claim> claim = claimRepo.findByEventId(eventId);
+        if (claim.isEmpty()) {
+            return ResponseEntity.ok(Map.of("status", "queued", "eventId", eventId));
         }
+        return ResponseEntity.ok(claimService.getClaimById(claim.get().getClaimId()));
     }
 
-    @PostMapping("/process-now")
-    public ResponseEntity<Map<String, String>> processNow() {
-        claimService.pollAndProcessTriggers();
-        return ResponseEntity.ok(Map.of(
-                "message", "Claim processing cycle triggered manually"
-        ));
-    }
-
-    // ── GET /api/claims/analytics ─────────────────────────
-    // Summary stats for admin dashboard
-    // Total claims, approval rate, fraud rate, total paid out
     @GetMapping("/analytics")
-    public ResponseEntity<ClaimDTO.Analytics> getAnalytics() {
-        return ResponseEntity.ok(claimService.getAnalytics());
+    public ResponseEntity<ClaimDTO.Analytics> getAnalytics(
+            @RequestParam(required = false) String workerId) {
+        return ResponseEntity.ok(
+            workerId != null
+                ? claimService.getAnalyticsForWorker(workerId)
+                : claimService.getAnalytics()
+        );
     }
 
-    // ── GET /api/claims/health ────────────────────────────
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
-        return ResponseEntity.ok(Map.of(
-                "status", "ok",
-                "service", "claims-service"
-        ));
+        return ResponseEntity.ok(Map.of("status", "ok", "service", "claims-service"));
     }
 }

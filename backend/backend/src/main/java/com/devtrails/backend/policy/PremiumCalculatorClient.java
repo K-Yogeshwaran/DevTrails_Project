@@ -34,7 +34,6 @@ public class PremiumCalculatorClient {
             requestBody.put("persona",            worker.getPersona());
             requestBody.put("daily_earnings",     worker.getDailyEarnings());
             requestBody.put("active_hours",       worker.getActiveHours());
-            requestBody.put("shift",              worker.getShift());
             requestBody.put("season",             season);
             requestBody.put("days_per_week",      worker.getDaysPerWeek());
             requestBody.put("experience_months",  worker.getExperienceMonths());

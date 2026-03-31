@@ -1,7 +1,9 @@
 package com.devtrails.backend.worker;
 
+import com.devtrails.backend.config.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +27,12 @@ public class WorkerService {
 
     @Transactional
     public WorkerDTO.AuthResponse register(WorkerDTO.RegisterRequest request) {
-
         if (workerRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone number already registered");
+            throw new ApiException(HttpStatus.CONFLICT, "Phone number already registered");
         }
-
-        if (request.getEmail() != null && workerRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+        if (request.getEmail() != null && !request.getEmail().isBlank()
+                && workerRepository.existsByEmail(request.getEmail())) {
+            throw new ApiException(HttpStatus.CONFLICT, "Email address already registered");
         }
 
         String workerId = "GS-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -47,7 +48,6 @@ public class WorkerService {
         worker.setPersona(request.getPersona());
         worker.setDailyEarnings(request.getDailyEarnings());
         worker.setActiveHours(request.getActiveHours());
-        worker.setShift(request.getShift());
         worker.setExperienceMonths(request.getExperienceMonths());
         worker.setDaysPerWeek(request.getDaysPerWeek());
         worker.setPasswordHash(hashedPassword);
@@ -75,14 +75,14 @@ public class WorkerService {
     public WorkerDTO.AuthResponse login(WorkerDTO.LoginRequest request) {
 
         Worker worker = workerRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new RuntimeException("Phone number not registered"));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "No account found with this phone number"));
 
         if (!worker.getIsActive()) {
-            throw new RuntimeException("Account is deactivated. Contact support.");
+            throw new ApiException(HttpStatus.FORBIDDEN, "Account is deactivated. Please contact support.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), worker.getPasswordHash())) {
-            throw new RuntimeException("Incorrect password");
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Incorrect password. Please try again.");
         }
 
         String token = jwtUtil.generateToken(worker.getWorkerId());
@@ -102,8 +102,7 @@ public class WorkerService {
 
     public WorkerDTO.ProfileResponse getProfile(String workerId) {
         Worker worker = workerRepository.findByWorkerId(workerId)
-                .orElseThrow(() -> new RuntimeException("Worker not found: " + workerId));
-
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Worker not found with ID: " + workerId));
 
         WorkerDTO.ProfileResponse profile = new WorkerDTO.ProfileResponse();
         profile.setWorkerId(worker.getWorkerId());
@@ -114,7 +113,6 @@ public class WorkerService {
         profile.setPersona(worker.getPersona());
         profile.setDailyEarnings(worker.getDailyEarnings());
         profile.setActiveHours(worker.getActiveHours());
-        profile.setShift(worker.getShift());
         profile.setExperienceMonths(worker.getExperienceMonths());
         profile.setDaysPerWeek(worker.getDaysPerWeek());
         profile.setIsActive(worker.getIsActive());
@@ -127,13 +125,12 @@ public class WorkerService {
     @Transactional
     public WorkerDTO.ProfileResponse updateProfile(String workerId, WorkerDTO.UpdateRequest request) {
         Worker worker = workerRepository.findByWorkerId(workerId)
-                .orElseThrow(() -> new RuntimeException("Worker not found: " + workerId));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Worker not found with ID: " + workerId));
 
         // Only update fields that were actually sent
         // null check prevents overwriting with empty values
         if (request.getDailyEarnings() != null) worker.setDailyEarnings(request.getDailyEarnings());
         if (request.getActiveHours()   != null) worker.setActiveHours(request.getActiveHours());
-        if (request.getShift()         != null) worker.setShift(request.getShift());
         if (request.getZoneId()        != null) worker.setZoneId(request.getZoneId());
         if (request.getDaysPerWeek()   != null) worker.setDaysPerWeek(request.getDaysPerWeek());
 
@@ -153,7 +150,7 @@ public class WorkerService {
     @Transactional
     public void deactivateWorker(String workerId) {
         Worker worker = workerRepository.findByWorkerId(workerId)
-                .orElseThrow(() -> new RuntimeException("Worker not found: " + workerId));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Worker not found with ID: " + workerId));
         worker.setIsActive(false);
         workerRepository.save(worker);
         log.info("Worker deactivated: {}", workerId);

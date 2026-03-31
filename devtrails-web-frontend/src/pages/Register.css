@@ -1,0 +1,606 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.register-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0d14;
+    padding: 24px 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.register-container::before,
+.register-container::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.register-container::before {
+    width: 500px;
+    height: 500px;
+    background: #6c63ff;
+    top: -120px;
+    right: -100px;
+}
+
+.register-container::after {
+    width: 350px;
+    height: 350px;
+    background: #a78bfa;
+    bottom: -80px;
+    left: -80px;
+}
+
+/* Card */
+.register-card {
+    background: #16161f;
+    border: 1px solid #2a2a3a;
+    padding: 36px 40px 32px;
+    width: 460px;
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Brand */
+.register-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.register-brand .brand-icon {
+    font-size: 24px;
+}
+
+.register-brand h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.4px;
+}
+
+.register-brand h1 span {
+    color: #6c63ff;
+}
+
+.register-tagline {
+    text-align: center;
+    font-size: 12.5px;
+    color: #5a5a72;
+    margin-bottom: 28px;
+}
+
+/* ── STEP PROGRESS ─────────────────────────────── */
+.step-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    gap: 0;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #2a2a3a;
+    background: #1e1e2e;
+    color: #4a4a62;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.step-item.active .step-circle {
+    border-color: #6c63ff;
+    background: #6c63ff;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.2);
+}
+
+.step-item.done .step-circle {
+    border-color: #22c55e;
+    background: #22c55e;
+    color: #fff;
+}
+
+.step-label {
+    font-size: 10.5px;
+    color: #3e3e56;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.step-item.active .step-label {
+    color: #6c63ff;
+}
+
+.step-item.done .step-label {
+    color: #22c55e;
+}
+
+.step-connector {
+    width: 60px;
+    height: 2px;
+    background: #2a2a3a;
+    margin: 0 4px;
+    margin-bottom: 22px;
+    transition: background 0.3s;
+    flex-shrink: 0;
+}
+
+.step-connector.done {
+    background: #22c55e;
+}
+
+/* ── STEP PANEL ────────────────────────────────── */
+.step-panel {
+    animation: stepIn 0.3s ease;
+}
+
+@keyframes stepIn {
+    from { opacity: 0; transform: translateX(12px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.step-heading {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e0e0f0;
+    margin-bottom: 4px;
+}
+
+.step-sub {
+    font-size: 12.5px;
+    color: #4a4a62;
+    margin-bottom: 20px;
+}
+
+/* ── FIELD GROUP ───────────────────────────────── */
+.field-group {
+    text-align: left;
+    margin-bottom: 14px;
+}
+
+.field-group label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #7a7a9a;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 6px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    font-size: 14px;
+    color: #4a4a62;
+    pointer-events: none;
+}
+
+.field-group input,
+.field-group select {
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    background: #1e1e2e;
+    border: 1px solid #2a2a3a;
+    border-radius: 10px;
+    color: #e0e0f0;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+}
+
+.field-group input::placeholder {
+    color: #3e3e56;
+}
+
+.field-group input:focus,
+.field-group select:focus {
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+.field-group select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a4a62' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+}
+
+.field-group select option {
+    background: #1e1e2e;
+    color: #e0e0f0;
+}
+
+/* Password toggle */
+.toggle-pw {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #4a4a62;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 0;
+    width: auto;
+    margin: 0;
+    transition: color 0.2s;
+}
+
+.toggle-pw:hover {
+    color: #6c63ff;
+    background: none;
+}
+
+/* Zone read-only */
+.zone-display {
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    background: #1a1a28;
+    border: 1px solid #2a2a3a;
+    border-radius: 10px;
+    color: #6c63ff;
+    font-size: 13.5px;
+    font-weight: 500;
+    min-height: 42px;
+}
+
+.zone-display.empty {
+    color: #3e3e56;
+    font-style: italic;
+}
+
+/* ── PERSONA CARDS ─────────────────────────────── */
+.persona-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.persona-card {
+    background: #1e1e2e;
+    border: 2px solid #2a2a3a;
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.persona-card:hover {
+    border-color: #6c63ff;
+    background: #22223a;
+}
+
+.persona-card.selected {
+    border-color: #6c63ff;
+    background: rgba(108, 99, 255, 0.12);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+.persona-card .persona-emoji {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.persona-card .persona-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #9090b0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.persona-card.selected .persona-name {
+    color: #a78bfa;
+}
+
+/* ── PLATFORM LOGOS ────────────────────────────── */
+.platform-section-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #7a7a9a;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.platforms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.platform-btn {
+    position: relative;
+    background: #1e1e2e;
+    border: 2px solid #2a2a3a;
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 56px;
+    overflow: hidden;
+}
+
+.platform-btn:hover:not(:disabled) {
+    border-color: #6c63ff;
+    background: #22223a;
+    transform: translateY(-2px);
+}
+
+.platform-btn.linked {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.platform-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.platform-btn img {
+    width: 48px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Loading overlay on platform button */
+.platform-btn .platform-loading {
+    position: absolute;
+    inset: 0;
+    background: rgba(13, 13, 20, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+}
+
+.platform-linked-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
+    background: #22c55e;
+    color: #fff;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+/* Sequential fetch phase message */
+.platform-fetch-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(108, 99, 255, 0.08);
+    border: 1px solid rgba(108, 99, 255, 0.2);
+    border-radius: 8px;
+    padding: 9px 12px;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #a78bfa;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── LOCATION BUTTON ───────────────────────────── */
+.btn-location {
+    width: 100%;
+    padding: 11px 14px;
+    background: #1e1e2e;
+    border: 1px dashed #3a3a52;
+    border-radius: 10px;
+    color: #9090b0;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.btn-location:hover:not(:disabled) {
+    border-color: #6c63ff;
+    color: #a78bfa;
+    background: rgba(108, 99, 255, 0.06);
+}
+
+.btn-location:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ── NAVIGATION BUTTONS ────────────────────────── */
+.step-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-back {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid #2a2a3a;
+    border-radius: 10px;
+    color: #7a7a9a;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    border-color: #4a4a62;
+    color: #e0e0f0;
+    background: #1e1e2e;
+}
+
+.btn-next,
+.btn-submit {
+    flex: 2;
+    padding: 12px;
+    background: #6c63ff;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-next:hover:not(:disabled),
+.btn-submit:hover:not(:disabled) {
+    background: #5a52e0;
+    box-shadow: 0 6px 20px rgba(108, 99, 255, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-next:disabled,
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Single full-width next on step 1 */
+.btn-next.full {
+    flex: 1;
+}
+
+/* ── SPINNER ───────────────────────────────────── */
+.spinner {
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+.spinner-sm {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── ERROR / SUCCESS ───────────────────────────── */
+.error-msg {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+.success-msg {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+/* ── FOOTER LINK ───────────────────────────────── */
+.register-footer {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #4a4a62;
+    text-align: center;
+}
+
+.register-footer span {
+    color: #6c63ff;
+    cursor: pointer;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.register-footer span:hover {
+    color: #a78bfa;
+}

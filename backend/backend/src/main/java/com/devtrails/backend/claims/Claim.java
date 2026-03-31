@@ -21,14 +21,14 @@ public class Claim {
 
     // Unique claim ID — format: CLM-WORKID-TIMESTAMP
     // e.g. CLM-GS3F4A8B-1710758400
-    @Column(name = "claim_id", unique = true, nullable = false, length = 30)
+    @Column(name = "claim_id", unique = true, nullable = false, length = 60)
     private String claimId;
 
 
     @Column(name = "worker_id", nullable = false, length = 20)
     private String workerId;
 
-    @Column(name = "policy_number", nullable = false, length = 30)
+    @Column(name = "policy_number", nullable = false, length = 60)
     private String policyNumber;
 
 
@@ -42,6 +42,10 @@ public class Claim {
 
     @Column(name = "zone_id", nullable = false, length = 60)
     private String zoneId;
+
+    // Links back to the trigger_events table
+    @Column(name = "event_id", length = 120)
+    private String eventId;
 
     @Column(name = "disrupted_hours", nullable = false, precision = 4, scale = 1)
     private BigDecimal disruptedHours;

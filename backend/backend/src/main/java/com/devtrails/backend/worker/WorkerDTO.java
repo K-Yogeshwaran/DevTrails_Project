@@ -38,9 +38,6 @@ public class WorkerDTO {
         @Min(value = 1) @Max(value = 16)
         private Integer activeHours;
 
-        @NotBlank(message = "Shift is required")
-        private String shift;
-
         private Integer experienceMonths = 0;
         private Integer daysPerWeek = 6;
 
@@ -87,7 +84,6 @@ public class WorkerDTO {
         private String persona;
         private Integer dailyEarnings;
         private Integer activeHours;
-        private String shift;
         private Integer experienceMonths;
         private Integer daysPerWeek;
         private Boolean isActive;
@@ -101,7 +97,6 @@ public class WorkerDTO {
     public static class UpdateRequest {
         private Integer dailyEarnings;
         private Integer activeHours;
-        private String shift;
         private String zoneId;
         private Integer daysPerWeek;
     }

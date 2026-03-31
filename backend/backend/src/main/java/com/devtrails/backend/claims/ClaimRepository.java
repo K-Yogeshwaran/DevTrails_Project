@@ -13,6 +13,8 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     Optional<Claim> findByClaimId(String claimId);
 
+    Optional<Claim> findByEventId(String eventId);
+
     List<Claim> findByWorkerIdOrderByCreatedAtDesc(String workerId);
 
     List<Claim> findByStatus(String status);
@@ -36,7 +38,7 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
             @Param("since")    LocalDateTime since
     );
 
-    @Query("SELECT SUM(c.payoutAmount) FROM Claim c WHERE c.status = 'paid'")
+    @Query("SELECT SUM(c.payoutAmount) FROM Claim c WHERE c.status = 'approved'")
     java.math.BigDecimal totalPaidOut();
 
     @Query("SELECT c.triggerType, COUNT(c) FROM Claim c GROUP BY c.triggerType")

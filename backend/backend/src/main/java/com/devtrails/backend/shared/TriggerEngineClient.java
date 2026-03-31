@@ -53,6 +53,30 @@ public class TriggerEngineClient {
         return Collections.emptyList();
     }
 
+    // ── MARK EVENTS AS PROCESSED ──────────────────────────
+    // Called by ClaimService after processing a batch of events
+    // Prevents the same events from being reprocessed on the next poll cycle
+    public void markProcessed(List<String> eventIds) {
+        try {
+            String url = triggerEngineUrl + "/api/triggers/mark-processed";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            body.put("event_ids", eventIds);
+
+            restTemplate.exchange(
+                    url, HttpMethod.POST,
+                    new HttpEntity<>(body, headers),
+                    Map.class
+            );
+            log.info("Marked {} trigger events as processed", eventIds.size());
+        } catch (Exception e) {
+            log.warn("Could not mark events as processed: {}", e.getMessage());
+        }
+    }
+
     // ── CHECK TRIGGER ENGINE HEALTH ───────────────────────
     public boolean isHealthy() {
         try {

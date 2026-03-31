@@ -1,11 +1,12 @@
 package com.devtrails.backend.policy;
 
 
-import com.devtrails.backend.policy.PremiumCalculatorClient;
+import com.devtrails.backend.config.ApiException;
 import com.devtrails.backend.worker.Worker;
 import com.devtrails.backend.worker.WorkerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -23,9 +24,14 @@ public class PolicyService {
 
     private final PolicyRepository policyRepository;
     private final WorkerRepository workerRepository;
-    private final PremiumCalculatorClient premiumClient;
 
-    // Coverage caps per tier — must match config.py in ML module
+    // Fixed tier premiums — worker sees exactly this price, no ML involved
+    private static final Map<String, BigDecimal> TIER_PREMIUMS = Map.of(
+            "basic",    new BigDecimal("49"),
+            "standard", new BigDecimal("89"),
+            "premium",  new BigDecimal("149")
+    );
+
     private static final Map<String, BigDecimal> COVERAGE_CAPS = Map.of(
             "basic",    new BigDecimal("2000"),
             "standard", new BigDecimal("4500"),
@@ -38,7 +44,8 @@ public class PolicyService {
 
         // Step 1: Check worker exists
         Worker worker = workerRepository.findByWorkerId(request.getWorkerId())
-                .orElseThrow(() -> new RuntimeException("Worker not found: " + request.getWorkerId()));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
+                        "Worker not found with ID: " + request.getWorkerId()));
 
         // Step 2: Calculate week boundaries
         // Insurance week runs Monday to Sunday
@@ -48,21 +55,19 @@ public class PolicyService {
 
         // Step 3: Check if worker already has a policy this week
         if (policyRepository.existsActivePolicyForWeek(request.getWorkerId(), weekStart)) {
-            throw new RuntimeException(
-                    "Worker already has an active policy for this week. " +
-                            "Policy renews every Monday."
-            );
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "You already have an active policy for this week. Policies renew every Monday.");
         }
 
         // Step 4: Validate tier
         String tier = request.getTier().toLowerCase();
         if (!COVERAGE_CAPS.containsKey(tier)) {
-            throw new RuntimeException("Invalid tier: " + tier);
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Invalid tier '" + tier + "'. Must be one of: basic, standard, premium.");
         }
 
-        // Step 5: Call ML API to get dynamic premium
-        // This is where XGBoost model runs for this specific worker
-        BigDecimal weeklyPremium = premiumClient.calculatePremium(worker, request.getSeason());
+        // Step 5: Fixed premium from tier — no ML call needed
+        BigDecimal weeklyPremium = TIER_PREMIUMS.get(tier);
 
         // Step 6: Get coverage cap for chosen tier
         BigDecimal coverageCap = COVERAGE_CAPS.get(tier);
@@ -127,7 +132,8 @@ public class PolicyService {
     @Transactional
     public void deductCoverage(String policyNumber, BigDecimal amount) {
         Policy policy = policyRepository.findByPolicyNumber(policyNumber)
-                .orElseThrow(() -> new RuntimeException("Policy not found: " + policyNumber));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
+                        "Policy not found with number: " + policyNumber));
 
         // Add payout amount to coverage used
         BigDecimal newUsed = policy.getCoverageUsed().add(amount);
@@ -157,9 +163,8 @@ public class PolicyService {
     public PolicyDTO.PolicyResponse getCurrentPolicy(String workerId) {
         Policy policy = policyRepository
                 .findActivePolicy(workerId, LocalDate.now())
-                .orElseThrow(() -> new RuntimeException(
-                        "No active policy this week. Subscribe to get coverage."
-                ));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
+                        "No active policy found for this week. Subscribe to get coverage."));
         return buildResponse(policy, "Active policy");
     }
 

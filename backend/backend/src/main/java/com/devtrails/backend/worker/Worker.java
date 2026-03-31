@@ -56,11 +56,6 @@ public class Worker {
     private Integer activeHours;
 
 
-    @Column(name = "shift", nullable = false, length = 20)
-    @NotBlank(message = "Shift is required")
-    private String shift;
-
-
     @Column(name = "experience_months")
     @Min(value = 0, message = "Experience cannot be negative")
     private Integer experienceMonths = 0;

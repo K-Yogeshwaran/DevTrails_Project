@@ -6,10 +6,11 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 
-
 from config import ZONES, POLL_INTERVAL_SECONDS, DEDUP_WINDOW_SECONDS
+from zones_india import find_nearest_zone, get_zone
 from trigger import run_all_checks
-
+import redis_store
+import backend_client
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,125 +21,145 @@ log = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "gigshield-dev-secret-2026"
-
-CORS(app)
-
+CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
-# active_workers: maps zone_id → list of worker dicts
-# Example:
-#   { "zone_chennai_velachery": [
-#       {"worker_id": "W001", "name": "Ravi", "persona": "food"},
-#       {"worker_id": "W002", "name": "Priya", "persona": "grocery"},
-#   ]}
-active_workers = {}
-
-# dedup_store: maps "zone_id:trigger_type" → unix timestamp of last fire
-# Example:
-#   { "zone_chennai_velachery:rainfall": 1710758400 }
-# We use this to prevent the same trigger firing twice
-# within DEDUP_WINDOW_SECONDS for the same zone.
+# In-memory dedup store — maps "zone_id:trigger_type" → unix timestamp
 dedup_store = {}
 
-# trigger_log: keeps the last 100 trigger events in memory.
-# The REST endpoint /api/triggers reads from this.
-# Oldest entries are removed when length exceeds 100.
+# In-memory trigger log — last 100 events
 trigger_log = []
 
 
-# ── DEDUP LOGIC ──────────────────────────────────────────────
-
+# ── DEDUP ─────────────────────────────────────────────────────
 def is_duplicate(zone_id, trigger_type):
     key = f"{zone_id}:{trigger_type}"
     now = time.time()
-
     if key in dedup_store:
-        last_fired = dedup_store[key]
-        seconds_since = now - last_fired
-
-        if seconds_since < DEDUP_WINDOW_SECONDS:
-            log.info(
-                f"Dedup: skipping {key} "
-                f"(fired {int(seconds_since)}s ago, "
-                f"window={DEDUP_WINDOW_SECONDS}s)"
-            )
-            return True   
-
-    return False  
+        if now - dedup_store[key] < DEDUP_WINDOW_SECONDS:
+            return True
+    return False
 
 
 def record_trigger(zone_id, trigger_type):
-    key = f"{zone_id}:{trigger_type}"
-    dedup_store[key] = time.time()
+    dedup_store[f"{zone_id}:{trigger_type}"] = time.time()
 
+
+# active_triggers: maps "zone_id:trigger_type" → event_id
+# Tracks which disruptions are currently ongoing so we can detect when they end
+active_triggers = {}
+
+
+# ── POLL ──────────────────────────────────────────────────────
 def poll_all_zones():
     log.info("── Poll cycle starting ──────────────────────────")
 
-    for zone_id, zone in ZONES.items():
+    if redis_store.is_available():
+        active_zone_ids = redis_store.get_active_zones()
+    else:
+        log.warning("Redis unavailable — skipping poll")
+        active_zone_ids = []
+
+    if not active_zone_ids:
+        log.info("No active zones in Redis — nothing to poll")
+        return
+
+    log.info(f"Polling {len(active_zone_ids)} active zone(s)")
+
+    for zone_id in active_zone_ids:
+        zone = ZONES.get(zone_id)
+        if not zone:
+            continue
+
+        zone = dict(zone)
         zone["zone_id"] = zone_id
-
-        log.info(f"Checking zone: {zone['name']} ({zone_id})")
-
         results = run_all_checks(zone)
 
         for result in results:
             trigger_type = result["type"]
-            if not result["triggered"]:
-                continue
+            active_key   = f"{zone_id}:{trigger_type}"
 
-            if is_duplicate(zone_id, trigger_type):
-                continue
-            
-            record_trigger(zone_id, trigger_type)
+            if result["triggered"]:
+                # ── NEW DISRUPTION ────────────────────────────
+                if active_key not in active_triggers:
+                    event_id = f"{zone_id}:{trigger_type}:{int(time.time())}"
+                    active_triggers[active_key] = event_id
 
-            log.info(
-                f"TRIGGER FIRED: {trigger_type} in {zone['name']} "
-                f"| value={result['value']} threshold={result['threshold']}"
-            )
+                    log.info(f"DISRUPTION STARTED: {trigger_type} in {zone['name']} | value={result['value']}")
 
-            affected_workers = active_workers.get(zone_id, [])
+                    # Save to DB via Spring Boot
+                    backend_client.create_trigger_event(
+                        event_id     = event_id,
+                        trigger_type = trigger_type,
+                        zone_id      = zone_id,
+                        zone_name    = zone["name"],
+                        trigger_value= result["value"] if isinstance(result["value"], (int, float)) else 0,
+                    )
 
-            if not affected_workers:
-                log.info(
-                    f"No active workers in {zone['name']} — "
-                    f"trigger logged but no payouts."
-                )
+                    # Notify workers via WebSocket
+                    workers = redis_store.get_workers_in_zone(zone_id) if redis_store.is_available() else []
+                    for worker in workers:
+                        event = {
+                            "event_id":    event_id,
+                            "trigger_type": trigger_type,
+                            "zone_id":     zone_id,
+                            "zone_name":   zone["name"],
+                            "worker_id":   worker["worker_id"],
+                            "worker_name": worker["name"],
+                            "persona":     worker["persona"],
+                            "triggered_at": datetime.now(timezone.utc).isoformat(),
+                            "value":       result["value"],
+                            "threshold":   result["threshold"],
+                            "unit":        result["unit"],
+                            "message":     result["message"],
+                            "status":      "active",
+                        }
+                        trigger_log.append(event)
+                        if len(trigger_log) > 100:
+                            trigger_log.pop(0)
+                        socketio.emit("trigger_fired", event)
+                else:
+                    log.info(f"Disruption still active: {trigger_type} in {zone['name']}")
 
-            for worker in affected_workers:
-                event = {
-                    "event_id": f"{zone_id}:{trigger_type}:{int(time.time())}",
-                    "trigger_type": trigger_type,
-                    "zone_id": zone_id,
-                    "zone_name": zone["name"],
-                    "worker_id": worker["worker_id"],
-                    "worker_name": worker["name"],
-                    "persona": worker["persona"],
-                    "triggered_at": datetime.now(timezone.utc).isoformat(),
-                    "value": result["value"],
-                    "threshold": result["threshold"],
-                    "unit": result["unit"],
-                    "message": result["message"],
-                    "status": "pending_payout",  
-                }
+            else:
+                # ── CONDITION NORMALISED ──────────────────────
+                if active_key in active_triggers:
+                    event_id = active_triggers.pop(active_key)
+                    log.info(f"DISRUPTION ENDED: {trigger_type} in {zone['name']}")
 
-                trigger_log.append(event)
-                if len(trigger_log) > 100:
-                    trigger_log.pop(0)  
-                socketio.emit("trigger_fired", event)
-                log.info(
-                    f"  → WebSocket emitted for worker {worker['worker_id']}"
-                )
+                    # Get workers still online — only they get the payout
+                    workers = redis_store.get_workers_in_zone(zone_id) if redis_store.is_available() else []
+                    live_worker_ids = [w["worker_id"] for w in workers]
+
+                    # Resolve in DB — triggers claim creation
+                    backend_client.resolve_trigger_event(event_id, live_worker_ids)
+
+                    # Notify workers disruption ended
+                    for worker in workers:
+                        socketio.emit("trigger_resolved", {
+                            "event_id":    event_id,
+                            "trigger_type": trigger_type,
+                            "zone_id":     zone_id,
+                            "zone_name":   zone["name"],
+                            "worker_id":   worker["worker_id"],
+                            "message":     f"{trigger_type.replace('_',' ').title()} has ended in {zone['name']}. Claim is being processed.",
+                        })
 
     log.info("── Poll cycle complete ──────────────────────────")
+
+
+# ── REST ENDPOINTS ────────────────────────────────────────────
 
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({
-        "status": "ok",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "active_zones": len(ZONES),
-        "active_workers": sum(len(w) for w in active_workers.values()),
+        "status":         "ok",
+        "timestamp":      datetime.now(timezone.utc).isoformat(),
+        "total_zones":    len(ZONES),
+        "active_zones":   len(redis_store.get_active_zones()) if redis_store.is_available() else 0,
+        "active_workers": len(redis_store.get_all_active_workers()) if redis_store.is_available() else 0,
+        "redis":          "connected" if redis_store.is_available() else "unavailable",
     })
 
 
@@ -147,68 +168,130 @@ def get_zones():
     return jsonify(ZONES)
 
 
+@app.route("/api/zones/active", methods=["GET"])
+def get_active_zones():
+    if not redis_store.is_available():
+        return jsonify({"error": "Redis unavailable"}), 503
+    zone_ids = redis_store.get_active_zones()
+    result = {zid: ZONES[zid] for zid in zone_ids if zid in ZONES}
+    return jsonify(result)
+
+
 @app.route("/api/workers/register", methods=["POST"])
 def register_worker():
     data = request.get_json()
 
-    required = ["worker_id", "name", "zone_id", "persona"]
+    required = ["worker_id", "name", "persona"]
     for field in required:
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
 
-    zone_id = data["zone_id"]
+    lat     = data.get("lat")
+    lon     = data.get("lon")
+    zone_id = data.get("zone_id")
+
+    # Resolve zone from GPS if provided, otherwise use supplied zone_id
+    if lat is not None and lon is not None:
+        zone_id = find_nearest_zone(float(lat), float(lon))
+        log.info(f"GPS ({lat},{lon}) → nearest zone: {zone_id}")
+    elif not zone_id:
+        return jsonify({"error": "Provide either lat/lon or zone_id"}), 400
 
     if zone_id not in ZONES:
         return jsonify({"error": f"Unknown zone_id: {zone_id}"}), 400
 
-    if zone_id not in active_workers:
-        active_workers[zone_id] = []
+    if redis_store.is_available():
+        redis_store.register_worker(
+            worker_id=data["worker_id"],
+            name=data["name"],
+            persona=data["persona"],
+            zone_id=zone_id,
+            lat=lat or ZONES[zone_id]["lat"],
+            lon=lon or ZONES[zone_id]["lon"],
+        )
+    else:
+        log.warning("Redis unavailable — worker registration not persisted")
 
-    existing_ids = [w["worker_id"] for w in active_workers[zone_id]]
-    if data["worker_id"] not in existing_ids:
-        active_workers[zone_id].append({
-            "worker_id": data["worker_id"],
-            "name": data["name"],
-            "persona": data["persona"],
-            "registered_at": datetime.now(timezone.utc).isoformat(),
-        })
-        log.info(f"Worker registered: {data['name']} → {zone_id}")
-
+    zone = ZONES[zone_id]
     return jsonify({
-        "message": "Worker registered successfully",
-        "zone": ZONES[zone_id]["name"],
-        "active_in_zone": len(active_workers[zone_id]),
+        "message":  "Worker registered successfully",
+        "zone_id":  zone_id,
+        "zone_name": zone["name"],
+        "city":     zone["city"],
     }), 201
 
 
 @app.route("/api/workers/deregister", methods=["POST"])
 def deregister_worker():
-    data = request.get_json()
+    data      = request.get_json()
     worker_id = data.get("worker_id")
-    zone_id = data.get("zone_id")
+    zone_id   = data.get("zone_id")
 
-    if zone_id in active_workers:
-        active_workers[zone_id] = [
-            w for w in active_workers[zone_id]
-            if w["worker_id"] != worker_id
-        ]
+    if not worker_id:
+        return jsonify({"error": "worker_id required"}), 400
 
-    log.info(f"Worker deregistered: {worker_id} from {zone_id}")
+    if redis_store.is_available():
+        # If zone_id not provided, look it up from Redis
+        if not zone_id:
+            all_workers = redis_store.get_all_active_workers()
+            for w in all_workers:
+                if w["worker_id"] == worker_id:
+                    zone_id = w["zone_id"]
+                    break
+        if zone_id:
+            redis_store.deregister_worker(worker_id, zone_id)
+
+    log.info(f"Worker deregistered: {worker_id}")
     return jsonify({"message": "Worker deregistered"})
 
 
 @app.route("/api/workers/active", methods=["GET"])
 def get_active_workers():
-    return jsonify({
-        "zones": {
-            zone_id: {
-                "zone_name": ZONES[zone_id]["name"],
-                "workers": workers,
-                "count": len(workers),
+    if not redis_store.is_available():
+        return jsonify({"error": "Redis unavailable"}), 503
+
+    workers = redis_store.get_all_active_workers()
+    by_zone = {}
+    for w in workers:
+        zid = w["zone_id"]
+        if zid not in by_zone:
+            by_zone[zid] = {
+                "zone_name": ZONES.get(zid, {}).get("name", zid),
+                "city":      ZONES.get(zid, {}).get("city", ""),
+                "workers":   [],
+                "count":     0,
             }
-            for zone_id, workers in active_workers.items()
-        },
-        "total_active": sum(len(w) for w in active_workers.values()),
+        by_zone[zid]["workers"].append(w)
+        by_zone[zid]["count"] += 1
+
+    return jsonify({
+        "zones":        by_zone,
+        "total_active": len(workers),
+    })
+
+
+@app.route("/api/workers/resolve-zone", methods=["POST"])
+def resolve_zone():
+    """
+    Given lat/lon, returns the nearest zone_id and zone details.
+    Called by the frontend before going online.
+    """
+    data = request.get_json()
+    lat  = data.get("lat")
+    lon  = data.get("lon")
+
+    if lat is None or lon is None:
+        return jsonify({"error": "lat and lon required"}), 400
+
+    zone_id = find_nearest_zone(float(lat), float(lon))
+    zone    = ZONES[zone_id]
+
+    return jsonify({
+        "zone_id":   zone_id,
+        "zone_name": zone["name"],
+        "city":      zone["city"],
+        "lat":       zone["lat"],
+        "lon":       zone["lon"],
     })
 
 
@@ -216,67 +299,91 @@ def get_active_workers():
 def get_triggers():
     zone_filter = request.args.get("zone_id")
     type_filter = request.args.get("type")
-
-    filtered = trigger_log
+    filtered    = trigger_log
     if zone_filter:
         filtered = [t for t in filtered if t["zone_id"] == zone_filter]
     if type_filter:
         filtered = [t for t in filtered if t["trigger_type"] == type_filter]
-
-    # Return newest first — reverse() flips the list order in-place
     return jsonify(list(reversed(filtered)))
+
+
+@app.route("/api/triggers/mark-processed", methods=["POST"])
+def mark_processed():
+    data      = request.get_json() or {}
+    event_ids = data.get("event_ids", [])
+    if not event_ids:
+        return jsonify({"error": "event_ids list is required"}), 400
+    updated = 0
+    for event in trigger_log:
+        if event["event_id"] in event_ids and event["status"] == "pending_payout":
+            event["status"] = "processed"
+            updated += 1
+    log.info(f"Marked {updated} trigger events as processed")
+    return jsonify({"message": f"{updated} events marked as processed"})
 
 
 @app.route("/api/triggers/manual", methods=["POST"])
 def manual_trigger():
-    data = request.get_json()
-    zone_id = data.get("zone_id")
+    data         = request.get_json()
+    zone_id      = data.get("zone_id")
     trigger_type = data.get("trigger_type", "rainfall")
-    value = data.get("value", 45)
+    value        = data.get("value", 45)
 
     if zone_id not in ZONES:
         return jsonify({"error": "Unknown zone_id"}), 400
 
-    zone = ZONES[zone_id]
-    affected = active_workers.get(zone_id, [])
-    events_fired = []
+    zone     = ZONES[zone_id]
+    workers  = redis_store.get_workers_in_zone(zone_id) if redis_store.is_available() else []
+    event_id = f"manual:{zone_id}:{trigger_type}:{int(time.time())}"
 
-    for worker in affected:
+    # Save to DB as active trigger event
+    backend_client.create_trigger_event(
+        event_id      = event_id,
+        trigger_type  = trigger_type,
+        zone_id       = zone_id,
+        zone_name     = zone["name"],
+        trigger_value = value if isinstance(value, (int, float)) else 0,
+    )
+
+    # Track in active_triggers so poll cycle can detect resolution
+    active_key = f"{zone_id}:{trigger_type}"
+    active_triggers[active_key] = event_id
+
+    events_fired = []
+    for worker in workers:
         event = {
-            "event_id": f"manual:{zone_id}:{trigger_type}:{int(time.time())}",
+            "event_id":     event_id,
             "trigger_type": trigger_type,
-            "zone_id": zone_id,
-            "zone_name": zone["name"],
-            "worker_id": worker["worker_id"],
-            "worker_name": worker["name"],
-            "persona": worker["persona"],
+            "zone_id":      zone_id,
+            "zone_name":    zone["name"],
+            "worker_id":    worker["worker_id"],
+            "worker_name":  worker["name"],
+            "persona":      worker["persona"],
             "triggered_at": datetime.now(timezone.utc).isoformat(),
-            "value": value,
-            "threshold": "manual override",
-            "message": f"Manual trigger: {trigger_type} in {zone['name']}.",
-            "status": "pending_payout",
-            "source": "manual",  
+            "value":        value,
+            "threshold":    "manual override",
+            "message":      f"Manual trigger: {trigger_type.replace('_',' ')} in {zone['name']}.",
+            "status":       "active",
+            "source":       "manual",
         }
         trigger_log.append(event)
         socketio.emit("trigger_fired", event)
         events_fired.append(event)
 
-    log.info(
-        f"Manual trigger: {trigger_type} in {zone['name']} "
-        f"→ {len(events_fired)} workers notified"
-    )
-
+    log.info(f"Manual trigger: {trigger_type} in {zone['name']} → {len(events_fired)} workers notified")
     return jsonify({
-        "message": f"Manual trigger fired for {len(events_fired)} workers",
-        "events": events_fired,
+        "message":  f"Manual trigger fired for {len(events_fired)} workers",
+        "event_id": event_id,
+        "events":   events_fired,
     })
 
+
+# ── WEBSOCKET ─────────────────────────────────────────────────
 @socketio.on("connect")
 def on_connect():
-    
     log.info(f"WebSocket client connected: {request.sid}")
     emit("connected", {
-        "message": "Connected to GigShield trigger engine",
+        "message":   "Connected to GigShield trigger engine",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     })
 
@@ -293,58 +400,47 @@ def on_subscribe(data):
     emit("subscribed", {"worker_id": worker_id, "status": "listening"})
 
 
+# ── SCHEDULER ─────────────────────────────────────────────────
 def start_scheduler():
     scheduler = BackgroundScheduler()
-
     scheduler.add_job(
-        func=poll_all_zones,       
-        trigger="interval",       
+        func=poll_all_zones,
+        trigger="interval",
         seconds=POLL_INTERVAL_SECONDS,
-        id="poll_all_zones",      
-        replace_existing=True,   
+        id="poll_all_zones",
+        replace_existing=True,
     )
-
     scheduler.start()
-    log.info(
-        f"Scheduler started: polling every {POLL_INTERVAL_SECONDS}s "
-        f"({POLL_INTERVAL_SECONDS//60} min)"
-    )
+    log.info(f"Scheduler started: polling every {POLL_INTERVAL_SECONDS}s")
     return scheduler
-
-
-def seed_demo_workers():
-    demo_workers = [
-        {"worker_id": "W001", "name": "Ravi Kumar",
-        "zone_id": "zone_chennai_velachery", "persona": "food"},
-        {"worker_id": "W002", "name": "Priya Selvan",
-        "zone_id": "zone_chennai_velachery", "persona": "grocery"},
-        {"worker_id": "W003", "name": "Arjun Nair",
-        "zone_id": "zone_chennai_adyar", "persona": "ecommerce"},
-        {"worker_id": "W004", "name": "Meena Devi",
-        "zone_id": "zone_mumbai_bandra", "persona": "food"},
-        {"worker_id": "W005", "name": "Karthik Raja",
-        "zone_id": "zone_bengaluru_koramangala", "persona": "grocery"},
-    ]
-
-    for w in demo_workers:
-        zone_id = w["zone_id"]
-        if zone_id not in active_workers:
-            active_workers[zone_id] = []
-        active_workers[zone_id].append({
-            "worker_id": w["worker_id"],
-            "name": w["name"],
-            "persona": w["persona"],
-            "registered_at": datetime.now(timezone.utc).isoformat(),
-        })
-
-    log.info(f"Seeded {len(demo_workers)} demo workers across zones")
 
 
 if __name__ == "__main__":
     log.info("Starting GigShield Parametric Trigger Engine...")
-    seed_demo_workers()
+    if redis_store.is_available():
+        log.info("Redis connected ✓")
+    else:
+        log.warning("Redis not available — workers must be in Redis to receive triggers")
+
+    # Restore active_triggers from Spring Boot DB on startup
+    # This handles the case where the trigger engine was restarted
+    # but active events still exist in the DB
+    try:
+        import requests as req_lib
+        from config import BACKEND_API_URL
+        res = req_lib.get(f"{BACKEND_API_URL}/api/trigger-events/active", timeout=3)
+        if res.status_code == 200:
+            active_events = res.json()
+            for ev in active_events:
+                key = f"{ev['zoneId']}:{ev['triggerType']}"
+                active_triggers[key] = ev['eventId']
+                log.info(f"Restored active trigger: {key} -> {ev['eventId']}")
+            log.info(f"Restored {len(active_events)} active triggers from DB")
+    except Exception as e:
+        log.warning(f"Could not restore active triggers from DB: {e}")
+
     start_scheduler()
     log.info("Running initial poll cycle on startup...")
     poll_all_zones()
-    log.info("Server starting on http://localhost:5001")
+    log.info(f"Server starting on http://localhost:5001 | {len(ZONES)} zones loaded")
     socketio.run(app, host="0.0.0.0", port=5001, debug=False, allow_unsafe_werkzeug=True)

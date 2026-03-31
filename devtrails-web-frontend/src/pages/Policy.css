@@ -1,0 +1,384 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.policy-page {
+    min-height: 100vh;
+    background: #0d0d14;
+    color: #e0e0f0;
+}
+
+/* ── NAVBAR ─────────────────────────────────────────── */
+.page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    background: #16161f;
+    border-bottom: 1px solid #2a2a3a;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.page-nav-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-back {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    color: #9090b0;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    border-color: #6c63ff;
+    color: #a78bfa;
+}
+
+/* ── BODY ────────────────────────────────────────────── */
+.policy-body {
+    padding: 24px 28px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* ── ACTIVE POLICY ───────────────────────────────────── */
+.active-policy-card {
+    background: #16161f;
+    border: 1px solid #2a2a3a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.active-policy-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.active-policy-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e0e0f0;
+}
+
+.policy-tier-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.tier-basic    { background: rgba(99,102,241,0.15);  color: #818cf8; }
+.tier-standard { background: rgba(168,85,247,0.15);  color: #c084fc; }
+.tier-premium  { background: rgba(245,158,11,0.15);  color: #fbbf24; }
+
+.policy-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.policy-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.policy-detail-label {
+    font-size: 11px;
+    color: #5a5a72;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+}
+
+.policy-detail-value {
+    font-size: 14px;
+    color: #c0c0d8;
+    font-weight: 500;
+}
+
+.coverage-bar-wrap { margin-top: 4px; }
+
+.coverage-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #5a5a72;
+    margin-bottom: 7px;
+}
+
+.coverage-bar {
+    height: 8px;
+    background: #2a2a3a;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.coverage-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6c63ff, #a78bfa);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.coverage-bar-fill.danger {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* ── TIER CARDS ──────────────────────────────────────── */
+.tier-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #7a7a9a;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 14px;
+}
+
+.tier-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.tier-card {
+    background: #16161f;
+    border: 2px solid #2a2a3a;
+    border-radius: 14px;
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    text-align: center;
+}
+
+.tier-card:hover {
+    border-color: #6c63ff;
+    background: #1e1e2e;
+    transform: translateY(-2px);
+}
+
+.tier-card.selected {
+    border-color: #6c63ff;
+    background: rgba(108, 99, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+.tier-card.popular::before {
+    content: "Most Popular";
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #6c63ff;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    letter-spacing: 0.4px;
+}
+
+.tier-name {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #9090b0;
+    margin-bottom: 10px;
+}
+
+.tier-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.tier-price span {
+    font-size: 13px;
+    color: #5a5a72;
+    font-weight: 400;
+}
+
+.tier-cap {
+    font-size: 12px;
+    color: #5a5a72;
+    margin-bottom: 14px;
+}
+
+.tier-cap b { color: #9090b0; }
+
+.tier-features {
+    list-style: none;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tier-features li {
+    font-size: 12px;
+    color: #7a7a9a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tier-features li::before {
+    content: "✓";
+    color: #22c55e;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+/* ── SEASON SELECT ───────────────────────────────────── */
+.season-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.season-btn {
+    padding: 10px 8px;
+    background: #1e1e2e;
+    border: 2px solid #2a2a3a;
+    border-radius: 10px;
+    color: #7a7a9a;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.season-btn:hover { border-color: #6c63ff; color: #a78bfa; }
+
+.season-btn.selected {
+    border-color: #6c63ff;
+    background: rgba(108,99,255,0.1);
+    color: #a78bfa;
+}
+
+/* ── SUBSCRIBE BUTTON ────────────────────────────────── */
+.btn-subscribe {
+    width: 100%;
+    padding: 14px;
+    background: #6c63ff;
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-subscribe:hover:not(:disabled) {
+    background: #5a52e0;
+    box-shadow: 0 6px 20px rgba(108,99,255,0.35);
+    transform: translateY(-1px);
+}
+
+.btn-subscribe:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── HISTORY ─────────────────────────────────────────── */
+.history-card {
+    background: #16161f;
+    border: 1px solid #2a2a3a;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-top: 20px;
+}
+
+.history-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #e0e0f0;
+    margin-bottom: 14px;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #1e1e2e;
+}
+
+.history-item:last-child { border-bottom: none; }
+
+.history-left { display: flex; flex-direction: column; gap: 3px; }
+.history-tier { font-size: 13px; color: #c0c0d8; font-weight: 500; text-transform: capitalize; }
+.history-dates { font-size: 11.5px; color: #4a4a62; }
+
+.history-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.history-premium { font-size: 13px; font-weight: 600; color: #9090b0; }
+
+.status-badge {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.status-active    { background: rgba(34,197,94,0.12);  color: #4ade80; }
+.status-expired   { background: rgba(99,102,241,0.12); color: #818cf8; }
+.status-exhausted { background: rgba(245,158,11,0.12); color: #fbbf24; }
+
+/* ── ERROR / SPINNER ─────────────────────────────────── */
+.error-msg {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+}
+
+.success-msg {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: #4ade80;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+}
+
+.spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

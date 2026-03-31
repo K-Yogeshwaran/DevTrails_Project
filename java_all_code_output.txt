@@ -1,0 +1,2117 @@
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\pom.xml
+================================================================================
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.3</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.devtrails</groupId>
+	<artifactId>backend</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name/>
+	<description/>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+        <!-- Add this inside your <dependencies> block in pom.xml -->
+
+        <!-- JWT library for token generation and validation -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\.mvn\wrapper\maven-wrapper.properties
+================================================================================
+
+wrapperVersion=3.3.4
+distributionType=only-script
+distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.12/apache-maven-3.9.12-bin.zip
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\BackendApplication.java
+================================================================================
+
+package com.devtrails.backend;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableScheduling
+public class BackendApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(BackendApplication.class, args);
+	}
+
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\claims\Claim.java
+================================================================================
+
+package com.devtrails.backend.claims;
+
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "claims")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Claim {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Unique claim ID — format: CLM-WORKID-TIMESTAMP
+    // e.g. CLM-GS3F4A8B-1710758400
+    @Column(name = "claim_id", unique = true, nullable = false, length = 30)
+    private String claimId;
+
+
+    @Column(name = "worker_id", nullable = false, length = 20)
+    private String workerId;
+
+    @Column(name = "policy_number", nullable = false, length = 30)
+    private String policyNumber;
+
+
+    @Column(name = "trigger_type", nullable = false, length = 30)
+    private String triggerType;
+
+
+    @Column(name = "trigger_value", precision = 8, scale = 2)
+    private BigDecimal triggerValue;
+
+
+    @Column(name = "zone_id", nullable = false, length = 60)
+    private String zoneId;
+
+    @Column(name = "disrupted_hours", nullable = false, precision = 4, scale = 1)
+    private BigDecimal disruptedHours;
+
+    @Column(name = "payout_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal payoutAmount;
+
+
+    @Column(name = "fraud_score", precision = 4, scale = 3)
+    private BigDecimal fraudScore = BigDecimal.ZERO;
+
+    @Column(name = "status", length = 20)
+    private String status = "pending";
+
+    @Column(name = "triggered_at")
+    private LocalDateTime triggeredAt;
+
+    @Column(name = "processed_at")
+    private LocalDateTime processedAt;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\claims\ClaimController.java
+================================================================================
+
+package com.devtrails.backend.claims;
+
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/claims")
+@RequiredArgsConstructor
+@Slf4j
+@CrossOrigin(origins = "*")
+public class ClaimController {
+
+    private final ClaimService claimService;
+
+    @GetMapping("/{workerId}")
+    public ResponseEntity<List<ClaimDTO.ClaimSummary>> getWorkerClaims(
+            @PathVariable String workerId) {
+        return ResponseEntity.ok(claimService.getWorkerClaims(workerId));
+    }
+
+    @GetMapping("/detail/{claimId}")
+    public ResponseEntity<?> getClaimById(@PathVariable String claimId) {
+        try {
+            return ResponseEntity.ok(claimService.getClaimById(claimId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/process-now")
+    public ResponseEntity<Map<String, String>> processNow() {
+        claimService.pollAndProcessTriggers();
+        return ResponseEntity.ok(Map.of(
+                "message", "Claim processing cycle triggered manually"
+        ));
+    }
+
+    // ── GET /api/claims/analytics ─────────────────────────
+    // Summary stats for admin dashboard
+    // Total claims, approval rate, fraud rate, total paid out
+    @GetMapping("/analytics")
+    public ResponseEntity<ClaimDTO.Analytics> getAnalytics() {
+        return ResponseEntity.ok(claimService.getAnalytics());
+    }
+
+    // ── GET /api/claims/health ────────────────────────────
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, String>> health() {
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "service", "claims-service"
+        ));
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\claims\ClaimDTO.java
+================================================================================
+
+package com.devtrails.backend.claims;
+
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+public class ClaimDTO {
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClaimResponse {
+        private String claimId;
+        private String workerId;
+        private String policyNumber;
+        private String triggerType;
+        private BigDecimal triggerValue;
+        private String zoneId;
+        private BigDecimal disruptedHours;
+        private BigDecimal payoutAmount;
+        private BigDecimal fraudScore;
+        private String status;
+        private LocalDateTime triggeredAt;
+        private LocalDateTime processedAt;
+        private String message;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClaimSummary {
+        private String claimId;
+        private String triggerType;
+        private BigDecimal payoutAmount;
+        private String status;
+        private LocalDateTime triggeredAt;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Analytics {
+        private long totalClaims;
+        private long approvedClaims;
+        private long rejectedClaims;
+        private long flaggedClaims;
+        private BigDecimal totalPaidOut;
+        private double approvalRate;
+        private double fraudRate;
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\claims\ClaimRepository.java
+================================================================================
+
+package com.devtrails.backend.claims;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ClaimRepository extends JpaRepository<Claim, Long> {
+
+    Optional<Claim> findByClaimId(String claimId);
+
+    List<Claim> findByWorkerIdOrderByCreatedAtDesc(String workerId);
+
+    List<Claim> findByStatus(String status);
+    @Query("SELECT COUNT(c) > 0 FROM Claim c " +
+            "WHERE c.workerId = :workerId " +
+            "AND c.triggerType = :triggerType " +
+            "AND c.triggeredAt >= :dayStart " +
+            "AND c.triggeredAt < :dayEnd")
+    boolean existsDuplicateClaim(
+            @Param("workerId")    String workerId,
+            @Param("triggerType") String triggerType,
+            @Param("dayStart")    LocalDateTime dayStart,
+            @Param("dayEnd")      LocalDateTime dayEnd
+    );
+
+    @Query("SELECT COUNT(c) FROM Claim c " +
+            "WHERE c.workerId = :workerId " +
+            "AND c.createdAt >= :since")
+    long countRecentClaims(
+            @Param("workerId") String workerId,
+            @Param("since")    LocalDateTime since
+    );
+
+    @Query("SELECT SUM(c.payoutAmount) FROM Claim c WHERE c.status = 'paid'")
+    java.math.BigDecimal totalPaidOut();
+
+    @Query("SELECT c.triggerType, COUNT(c) FROM Claim c GROUP BY c.triggerType")
+    List<Object[]> countByTriggerType();
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\claims\ClaimService.java
+================================================================================
+
+package com.devtrails.backend.claims;
+
+
+
+import com.devtrails.backend.policy.PolicyDTO;
+import com.devtrails.backend.policy.PolicyService;
+import com.devtrails.backend.shared.TriggerEngineClient;
+import com.devtrails.backend.worker.Worker;
+import com.devtrails.backend.worker.WorkerRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ClaimService {
+
+    private final ClaimRepository claimRepository;
+    private final WorkerRepository workerRepository;
+    private final PolicyService policyService;
+    private final TriggerEngineClient triggerEngineClient;
+
+    private static final Map<String, Double> PERSONA_SENSITIVITY = Map.of(
+            "food",      1.20,
+            "grocery",   1.00,
+            "ecommerce", 0.85
+    );
+
+    private static final Map<String, Double> DISRUPTED_HOURS = Map.of(
+            "rainfall",         4.0,  // heavy rain stops deliveries for ~4 hours
+            "aqi",              6.0,  // poor AQI affects the whole working day
+            "heat",             5.0,  // extreme heat, midday hours lost
+            "platform_downtime",2.0,  // platform outage affects ~2 hrs on avg
+            "curfew",           8.0   // curfew can affect the whole day
+    );
+
+
+    private static final double FRAUD_THRESHOLD = 0.70;
+
+    @Scheduled(fixedDelay = 60000)
+    public void pollAndProcessTriggers() {
+        if (!triggerEngineClient.isHealthy()) {
+            log.warn("Trigger engine unreachable — skipping poll cycle");
+            return;
+        }
+
+        List<Map<String, Object>> pendingTriggers =
+                triggerEngineClient.fetchPendingTriggers();
+
+        if (pendingTriggers.isEmpty()) {
+            return;
+        }
+
+        log.info("Processing {} pending trigger events", pendingTriggers.size());
+
+        for (Map<String, Object> event : pendingTriggers) {
+            try {
+                processTriggerEvent(event);
+            } catch (Exception e) {
+                log.error("Failed to process trigger event {}: {}",
+                        event.get("event_id"), e.getMessage());
+            }
+        }
+    }
+
+    @Transactional
+    public void processTriggerEvent(Map<String, Object> event) {
+        String workerId    = (String) event.get("worker_id");
+        String triggerType = (String) event.get("trigger_type");
+        String eventId     = (String) event.get("event_id");
+        String zoneId      = (String) event.get("zone_id");
+
+        log.info("Processing event: {} | Worker: {} | Type: {}",
+                eventId, workerId, triggerType);
+
+
+        LocalDateTime dayStart = LocalDate.now().atStartOfDay();
+        LocalDateTime dayEnd   = dayStart.plusDays(1);
+
+        boolean isDuplicate = claimRepository.existsDuplicateClaim(
+                workerId, triggerType, dayStart, dayEnd
+        );
+
+        if (isDuplicate) {
+            log.info("Duplicate claim rejected: {} already claimed {} today",
+                    workerId, triggerType);
+            return;
+        }
+
+        PolicyDTO.CoverageCheck coverage =
+                policyService.checkCoverage(workerId, LocalDate.now());
+
+        if (!coverage.isCovered()) {
+            log.info("No active policy for worker {}: {}", workerId, coverage.getReason());
+            return;
+        }
+
+        Worker worker = workerRepository.findByWorkerId(workerId)
+                .orElse(null);
+
+        if (worker == null) {
+            log.warn("Worker {} not found in database", workerId);
+            return;
+        }
+
+        double fraudScore = calculateFraudScore(worker, triggerType, zoneId);
+
+
+        BigDecimal payoutAmount = calculatePayout(worker, triggerType);
+
+        if (payoutAmount.compareTo(coverage.getCoverageRemaining()) > 0) {
+            payoutAmount = coverage.getCoverageRemaining();
+            log.info("Payout capped at remaining coverage: ₹{}", payoutAmount);
+        }
+
+        String claimStatus;
+        if (fraudScore > FRAUD_THRESHOLD) {
+            claimStatus = "flagged";  // needs manual review
+            log.warn("Claim flagged for fraud review: worker={} score={}",
+                    workerId, fraudScore);
+        } else {
+            claimStatus = "approved";
+        }
+
+        String claimId = "CLM-" +
+                workerId.replace("GS-", "") + "-" +
+                System.currentTimeMillis();
+
+        BigDecimal triggerValue = BigDecimal.ZERO;
+        Object rawValue = event.get("value");
+        if (rawValue != null) {
+            try {
+                triggerValue = new BigDecimal(rawValue.toString())
+                        .setScale(2, RoundingMode.HALF_UP);
+            } catch (Exception e) {
+                // value might be a map (platform_downtime) — use 0
+                triggerValue = BigDecimal.ZERO;
+            }
+        }
+
+        double disruptedHoursVal = DISRUPTED_HOURS.getOrDefault(triggerType, 4.0);
+
+        Claim claim = new Claim();
+        claim.setClaimId(claimId);
+        claim.setWorkerId(workerId);
+        claim.setPolicyNumber(coverage.getPolicyNumber());
+        claim.setTriggerType(triggerType);
+        claim.setTriggerValue(triggerValue);
+        claim.setZoneId(zoneId);
+        claim.setDisruptedHours(BigDecimal.valueOf(disruptedHoursVal));
+        claim.setPayoutAmount(payoutAmount);
+        claim.setFraudScore(BigDecimal.valueOf(fraudScore));
+        claim.setStatus(claimStatus);
+        claim.setTriggeredAt(LocalDateTime.now());
+        claim.setProcessedAt(LocalDateTime.now());
+
+        claimRepository.save(claim);
+
+        // ── STEP 9: DEDUCT COVERAGE ────────────────────────
+        // Only deduct if approved — flagged claims wait for manual review
+        if ("approved".equals(claimStatus)) {
+            policyService.deductCoverage(coverage.getPolicyNumber(), payoutAmount);
+            log.info("Claim APPROVED: {} | Worker: {} | Payout: ₹{}",
+                    claimId, workerId, payoutAmount);
+        }
+    }
+
+    private double calculateFraudScore(Worker worker, String triggerType, String zoneId) {
+        double score = 0.0;
+
+        // Rule 1: Zone mismatch
+        // Worker's registered zone should match the disrupted zone
+        if (!worker.getZoneId().equals(zoneId)) {
+            score += 0.50;  // heavy penalty — strong fraud signal
+            log.warn("Zone mismatch: worker zone={} event zone={}",
+                    worker.getZoneId(), zoneId);
+        }
+
+        // Rule 2: Velocity check
+        // More than 5 claims in last 7 days = suspicious
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        long recentClaimCount =
+                claimRepository.countRecentClaims(worker.getWorkerId(), oneWeekAgo);
+
+        if (recentClaimCount > 5) {
+            score += 0.30;  // too many claims recently
+            log.warn("High claim velocity: {} claims in 7 days for {}",
+                    recentClaimCount, worker.getWorkerId());
+        } else if (recentClaimCount > 3) {
+            score += 0.15;  // moderately high
+        }
+
+        // Rule 3: Inactive worker claiming
+        // Worker must be active to receive payouts
+        if (!worker.getIsActive()) {
+            score += 0.50;
+        }
+
+        // Rule 4: Implausible earnings
+        // Daily earnings > ₹3000 is unusual for a gig worker
+        if (worker.getDailyEarnings() > 3000) {
+            score += 0.20;
+        }
+
+        // Cap at 1.0
+        return Math.min(score, 1.0);
+    }
+
+    // ── PAYOUT CALCULATION ────────────────────────────────
+    // Formula: Hourly Rate × Disrupted Hours × Persona Factor
+    private BigDecimal calculatePayout(Worker worker, String triggerType) {
+        // Hourly rate
+        double hourlyRate = (double) worker.getDailyEarnings() / worker.getActiveHours();
+
+        // Disrupted hours for this trigger type
+        double disruptedHours = DISRUPTED_HOURS.getOrDefault(triggerType, 4.0);
+
+        // Persona sensitivity multiplier
+        double personaFactor = PERSONA_SENSITIVITY.getOrDefault(
+                worker.getPersona(), 1.0
+        );
+
+        // Payout = hourlyRate × disruptedHours × personaFactor
+        double payout = hourlyRate * disruptedHours * personaFactor;
+
+        // Round to 2 decimal places
+        return BigDecimal.valueOf(payout).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    // ── GET WORKER CLAIMS ─────────────────────────────────
+    public List<ClaimDTO.ClaimSummary> getWorkerClaims(String workerId) {
+        return claimRepository
+                .findByWorkerIdOrderByCreatedAtDesc(workerId)
+                .stream()
+                .map(c -> new ClaimDTO.ClaimSummary(
+                        c.getClaimId(), c.getTriggerType(),
+                        c.getPayoutAmount(), c.getStatus(), c.getTriggeredAt()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    // ── GET CLAIM BY ID ───────────────────────────────────
+    public ClaimDTO.ClaimResponse getClaimById(String claimId) {
+        Claim c = claimRepository.findByClaimId(claimId)
+                .orElseThrow(() -> new RuntimeException("Claim not found: " + claimId));
+        return buildResponse(c, "Claim details");
+    }
+
+    // ── GET ANALYTICS ─────────────────────────────────────
+    public ClaimDTO.Analytics getAnalytics() {
+        List<Claim> all         = claimRepository.findAll();
+        long total              = all.size();
+        long approved           = all.stream().filter(c -> "approved".equals(c.getStatus())).count();
+        long rejected           = all.stream().filter(c -> "rejected".equals(c.getStatus())).count();
+        long flagged            = all.stream().filter(c -> "flagged".equals(c.getStatus())).count();
+        BigDecimal totalPaidOut = claimRepository.totalPaidOut();
+        if (totalPaidOut == null) totalPaidOut = BigDecimal.ZERO;
+
+        double approvalRate = total > 0 ? (double) approved / total * 100 : 0;
+        double fraudRate    = total > 0 ? (double) flagged  / total * 100 : 0;
+
+        return new ClaimDTO.Analytics(
+                total, approved, rejected, flagged,
+                totalPaidOut, approvalRate, fraudRate
+        );
+    }
+
+    // ── HELPER ────────────────────────────────────────────
+    private ClaimDTO.ClaimResponse buildResponse(Claim c, String message) {
+        return new ClaimDTO.ClaimResponse(
+                c.getClaimId(), c.getWorkerId(), c.getPolicyNumber(),
+                c.getTriggerType(), c.getTriggerValue(), c.getZoneId(),
+                c.getDisruptedHours(), c.getPayoutAmount(), c.getFraudScore(),
+                c.getStatus(), c.getTriggeredAt(), c.getProcessedAt(), message
+        );
+    }
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\config\JwtUtil.java
+================================================================================
+
+package com.devtrails.backend.config;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import java.security.Key;
+import java.util.Date;
+
+
+@Component
+public class JwtUtil {
+
+
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private Long expiration;
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+
+    public String generateToken(String workerId) {
+        return Jwts.builder()
+                .setSubject(workerId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+
+    public String extractWorkerId(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\config\SecurityConfig.java
+================================================================================
+
+package com.devtrails.backend.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
+
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/workers/register",  // sign up
+                                "/api/workers/login",     // log in
+                                "/api/workers/health",    // health check
+                                "/api/*/health"           // all health checks
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\policy\Policy.java
+================================================================================
+
+package com.devtrails.backend.policy;
+
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "policies")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Policy {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Unique policy number — format: POL-WORKID-YYYYMMDD
+    // e.g. POL-GS3F4A8B-20260318
+    @Column(name = "policy_number", unique = true, nullable = false, length = 30)
+    private String policyNumber;
+
+    // Foreign key to workers table
+    // References worker_id column in workers table
+    @Column(name = "worker_id", nullable = false, length = 20)
+    private String workerId;
+
+    // "basic" | "standard" | "premium"
+    @Column(name = "tier", nullable = false, length = 20)
+    private String tier;
+
+
+    @Column(name = "weekly_premium", nullable = false, precision = 8, scale = 2)
+    private BigDecimal weeklyPremium;
+
+
+    @Column(name = "coverage_cap", nullable = false, precision = 10, scale = 2)
+    private BigDecimal coverageCap;
+
+
+    @Column(name = "coverage_used", precision = 10, scale = 2)
+    private BigDecimal coverageUsed = BigDecimal.ZERO;
+
+
+    @Column(name = "season", nullable = false, length = 20)
+    private String season;
+
+    @Column(name = "status", length = 20)
+    private String status = "active";
+
+
+    @Column(name = "week_start", nullable = false)
+    private LocalDate weekStart;
+
+
+    @Column(name = "week_end", nullable = false)
+    private LocalDate weekEnd;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (this.coverageUsed == null) {
+            this.coverageUsed = BigDecimal.ZERO;
+        }
+        if (this.status == null) {
+            this.status = "active";
+        }
+    }
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\policy\PolicyController.java
+================================================================================
+
+package com.devtrails.backend.policy;
+
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/policies")
+@RequiredArgsConstructor
+@Slf4j
+@CrossOrigin(origins = "*")
+public class PolicyController {
+
+    private final PolicyService policyService;
+
+
+    @PostMapping
+    public ResponseEntity<?> createPolicy(
+            @Valid @RequestBody PolicyDTO.CreateRequest request) {
+        try {
+            PolicyDTO.PolicyResponse response = policyService.createPolicy(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
+    @GetMapping("/{workerId}/current")
+    public ResponseEntity<?> getCurrentPolicy(@PathVariable String workerId) {
+        try {
+            return ResponseEntity.ok(policyService.getCurrentPolicy(workerId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
+    @GetMapping("/{workerId}/history")
+    public ResponseEntity<List<PolicyDTO.PolicySummary>> getPolicyHistory(
+            @PathVariable String workerId) {
+        return ResponseEntity.ok(policyService.getWorkerPolicies(workerId));
+    }
+
+
+    @GetMapping("/{workerId}/coverage-check")
+    public ResponseEntity<PolicyDTO.CoverageCheck> checkCoverage(
+            @PathVariable String workerId,
+            // ?date=2026-03-18 — defaults to today if not provided
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        LocalDate checkDate = (date != null) ? date : LocalDate.now();
+        return ResponseEntity.ok(policyService.checkCoverage(workerId, checkDate));
+    }
+
+    @PostMapping("/expire-old")
+    public ResponseEntity<Map<String, String>> expireOldPolicies() {
+        policyService.expireOldPolicies();
+        return ResponseEntity.ok(Map.of(
+                "message", "Old policies expired successfully"
+        ));
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, String>> health() {
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "service", "policy-service"
+        ));
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\policy\PolicyDTO.java
+================================================================================
+
+package com.devtrails.backend.policy;
+
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+public class PolicyDTO {
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateRequest {
+
+        @NotBlank(message = "Worker ID is required")
+        private String workerId;
+
+
+        @NotBlank(message = "Tier is required")
+        @Pattern(regexp = "basic|standard|premium",
+                message = "Tier must be: basic, standard, or premium")
+        private String tier;
+
+        @NotBlank(message = "Season is required")
+        @Pattern(regexp = "summer|monsoon|winter|spring",
+                message = "Season must be: summer, monsoon, winter, or spring")
+        private String season;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PolicyResponse {
+        private String policyNumber;
+        private String workerId;
+        private String tier;
+        private BigDecimal weeklyPremium;    // ML-calculated actual premium
+        private BigDecimal coverageCap;      // max payout this week
+        private BigDecimal coverageUsed;     // how much has been paid out
+        private BigDecimal coverageRemaining;// cap minus used
+        private String season;
+        private String status;
+        private LocalDate weekStart;
+        private LocalDate weekEnd;
+        private LocalDateTime createdAt;
+        private String message;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PolicySummary {
+        private String policyNumber;
+        private String tier;
+        private BigDecimal weeklyPremium;
+        private BigDecimal coverageCap;
+        private BigDecimal coverageUsed;
+        private String status;
+        private LocalDate weekStart;
+        private LocalDate weekEnd;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CoverageCheck {
+        private boolean isCovered;
+        private String policyNumber;
+        private BigDecimal coverageRemaining;
+        private String reason; // why not covered, if applicable
+    }
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\policy\PolicyRepository.java
+================================================================================
+
+package com.devtrails.backend.policy;
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface PolicyRepository extends JpaRepository<Policy, Long> {
+
+
+    @Query("SELECT p FROM Policy p WHERE p.workerId = :workerId " +
+            "AND p.status = 'active' " +
+            "AND :date BETWEEN p.weekStart AND p.weekEnd")
+    Optional<Policy> findActivePolicy(
+            @Param("workerId") String workerId,
+            @Param("date") LocalDate date
+    );
+
+    List<Policy> findByWorkerIdOrderByCreatedAtDesc(String workerId);
+
+
+    Optional<Policy> findByPolicyNumber(String policyNumber);
+
+
+    @Query("SELECT COUNT(p) > 0 FROM Policy p WHERE p.workerId = :workerId " +
+            "AND p.status = 'active' " +
+            "AND :weekStart = p.weekStart")
+    boolean existsActivePolicyForWeek(
+            @Param("workerId") String workerId,
+            @Param("weekStart") LocalDate weekStart
+    );
+
+    List<Policy> findByStatus(String status);
+
+    @Query("SELECT p.tier, COUNT(p) FROM Policy p " +
+            "WHERE p.status = 'active' GROUP BY p.tier")
+    List<Object[]> countActivePoliciesByTier();
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\policy\PolicyService.java
+================================================================================
+
+package com.devtrails.backend.policy;
+
+
+import com.devtrails.backend.policy.PremiumCalculatorClient;
+import com.devtrails.backend.worker.Worker;
+import com.devtrails.backend.worker.WorkerRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class PolicyService {
+
+    private final PolicyRepository policyRepository;
+    private final WorkerRepository workerRepository;
+    private final PremiumCalculatorClient premiumClient;
+
+    // Coverage caps per tier — must match config.py in ML module
+    private static final Map<String, BigDecimal> COVERAGE_CAPS = Map.of(
+            "basic",    new BigDecimal("2000"),
+            "standard", new BigDecimal("4500"),
+            "premium",  new BigDecimal("8000")
+    );
+
+    // ── CREATE POLICY ─────────────────────────────────────
+    @Transactional
+    public PolicyDTO.PolicyResponse createPolicy(PolicyDTO.CreateRequest request) {
+
+        // Step 1: Check worker exists
+        Worker worker = workerRepository.findByWorkerId(request.getWorkerId())
+                .orElseThrow(() -> new RuntimeException("Worker not found: " + request.getWorkerId()));
+
+        // Step 2: Calculate week boundaries
+        // Insurance week runs Monday to Sunday
+        LocalDate today     = LocalDate.now();
+        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
+        LocalDate weekEnd   = today.with(DayOfWeek.SUNDAY);
+
+        // Step 3: Check if worker already has a policy this week
+        if (policyRepository.existsActivePolicyForWeek(request.getWorkerId(), weekStart)) {
+            throw new RuntimeException(
+                    "Worker already has an active policy for this week. " +
+                            "Policy renews every Monday."
+            );
+        }
+
+        // Step 4: Validate tier
+        String tier = request.getTier().toLowerCase();
+        if (!COVERAGE_CAPS.containsKey(tier)) {
+            throw new RuntimeException("Invalid tier: " + tier);
+        }
+
+        // Step 5: Call ML API to get dynamic premium
+        // This is where XGBoost model runs for this specific worker
+        BigDecimal weeklyPremium = premiumClient.calculatePremium(worker, request.getSeason());
+
+        // Step 6: Get coverage cap for chosen tier
+        BigDecimal coverageCap = COVERAGE_CAPS.get(tier);
+
+        // Step 7: Generate unique policy number
+        // Format: POL-{WORKERID}-{DATE}
+        // e.g. POL-GS3F4A8B-20260318
+        String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String policyNumber = "POL-" +
+                worker.getWorkerId().replace("GS-", "") + "-" + dateStr;
+
+        // Step 8: Build and save the policy
+        Policy policy = new Policy();
+        policy.setPolicyNumber(policyNumber);
+        policy.setWorkerId(request.getWorkerId());
+        policy.setTier(tier);
+        policy.setWeeklyPremium(weeklyPremium);
+        policy.setCoverageCap(coverageCap);
+        policy.setCoverageUsed(BigDecimal.ZERO);
+        policy.setSeason(request.getSeason());
+        policy.setStatus("active");
+        policy.setWeekStart(weekStart);
+        policy.setWeekEnd(weekEnd);
+
+        policyRepository.save(policy);
+        log.info("Policy created: {} for worker {} | Tier: {} | Premium: ₹{}",
+                policyNumber, request.getWorkerId(), tier, weeklyPremium);
+
+        return buildResponse(policy, "Policy created successfully. Coverage active until " + weekEnd);
+    }
+
+    // ── CHECK COVERAGE ────────────────────────────────────
+    // Called by ClaimsService before processing any payout
+    // Returns whether the worker is covered and how much is remaining
+    public PolicyDTO.CoverageCheck checkCoverage(String workerId, LocalDate date) {
+
+        return policyRepository.findActivePolicy(workerId, date)
+                .map(policy -> {
+                    // Calculate remaining coverage
+                    BigDecimal remaining = policy.getCoverageCap()
+                            .subtract(policy.getCoverageUsed());
+
+                    return new PolicyDTO.CoverageCheck(
+                            true,
+                            policy.getPolicyNumber(),
+                            remaining,
+                            null  // no reason — worker IS covered
+                    );
+                })
+                // If no active policy found — return not covered
+                .orElse(new PolicyDTO.CoverageCheck(
+                        false,
+                        null,
+                        BigDecimal.ZERO,
+                        "No active policy found for this week"
+                ));
+    }
+
+    // ── DEDUCT COVERAGE ───────────────────────────────────
+    // Called after a payout is approved
+    // Reduces the remaining coverage cap by the payout amount
+    @Transactional
+    public void deductCoverage(String policyNumber, BigDecimal amount) {
+        Policy policy = policyRepository.findByPolicyNumber(policyNumber)
+                .orElseThrow(() -> new RuntimeException("Policy not found: " + policyNumber));
+
+        // Add payout amount to coverage used
+        BigDecimal newUsed = policy.getCoverageUsed().add(amount);
+        policy.setCoverageUsed(newUsed);
+
+        // If coverage is fully used up, mark as exhausted
+        if (newUsed.compareTo(policy.getCoverageCap()) >= 0) {
+            policy.setStatus("exhausted");
+            log.info("Policy {} coverage exhausted", policyNumber);
+        }
+
+        policyRepository.save(policy);
+        log.info("Coverage deducted: ₹{} from policy {} | Used: ₹{}/₹{}",
+                amount, policyNumber, newUsed, policy.getCoverageCap());
+    }
+
+    // ── GET WORKER POLICIES ───────────────────────────────
+    public List<PolicyDTO.PolicySummary> getWorkerPolicies(String workerId) {
+        return policyRepository
+                .findByWorkerIdOrderByCreatedAtDesc(workerId)
+                .stream()
+                .map(this::buildSummary)
+                .collect(Collectors.toList());
+    }
+
+    // ── GET CURRENT POLICY ────────────────────────────────
+    public PolicyDTO.PolicyResponse getCurrentPolicy(String workerId) {
+        Policy policy = policyRepository
+                .findActivePolicy(workerId, LocalDate.now())
+                .orElseThrow(() -> new RuntimeException(
+                        "No active policy this week. Subscribe to get coverage."
+                ));
+        return buildResponse(policy, "Active policy");
+    }
+
+    // ── EXPIRE OLD POLICIES ───────────────────────────────
+    // Called by a scheduled job every Monday to expire last week's policies
+    @Transactional
+    public void expireOldPolicies() {
+        LocalDate today = LocalDate.now();
+        List<Policy> activePolicies = policyRepository.findByStatus("active");
+
+        int expiredCount = 0;
+        for (Policy policy : activePolicies) {
+            // If policy's end date is before today, it's expired
+            if (policy.getWeekEnd().isBefore(today)) {
+                policy.setStatus("expired");
+                policyRepository.save(policy);
+                expiredCount++;
+            }
+        }
+        if (expiredCount > 0) {
+            log.info("Expired {} old policies", expiredCount);
+        }
+    }
+
+    // ── HELPERS ───────────────────────────────────────────
+    private PolicyDTO.PolicyResponse buildResponse(Policy p, String message) {
+        BigDecimal remaining = p.getCoverageCap().subtract(p.getCoverageUsed());
+        return new PolicyDTO.PolicyResponse(
+                p.getPolicyNumber(), p.getWorkerId(), p.getTier(),
+                p.getWeeklyPremium(), p.getCoverageCap(), p.getCoverageUsed(),
+                remaining, p.getSeason(), p.getStatus(),
+                p.getWeekStart(), p.getWeekEnd(), p.getCreatedAt(), message
+        );
+    }
+
+    private PolicyDTO.PolicySummary buildSummary(Policy p) {
+        return new PolicyDTO.PolicySummary(
+                p.getPolicyNumber(), p.getTier(), p.getWeeklyPremium(),
+                p.getCoverageCap(), p.getCoverageUsed(), p.getStatus(),
+                p.getWeekStart(), p.getWeekEnd()
+        );
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\policy\PremiumCalculatorClient.java
+================================================================================
+
+package com.devtrails.backend.policy;
+
+
+import com.devtrails.backend.worker.Worker;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.HashMap;
+
+@Component
+@Slf4j
+public class PremiumCalculatorClient {
+
+
+    @Value("${ml.premium.url}")
+    private String mlPremiumUrl;
+
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+
+    public BigDecimal calculatePremium(Worker worker, String season) {
+        try {
+            String url = mlPremiumUrl + "/api/premium/calculate";
+
+            // Build the request body — same fields the ML API expects
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("worker_id",          worker.getWorkerId());
+            requestBody.put("zone_id",            worker.getZoneId());
+            requestBody.put("persona",            worker.getPersona());
+            requestBody.put("daily_earnings",     worker.getDailyEarnings());
+            requestBody.put("active_hours",       worker.getActiveHours());
+            requestBody.put("shift",              worker.getShift());
+            requestBody.put("season",             season);
+            requestBody.put("days_per_week",      worker.getDaysPerWeek());
+            requestBody.put("experience_months",  worker.getExperienceMonths());
+
+            // Set Content-Type header to application/json
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            // Make the POST request
+            // Map.class tells RestTemplate to parse the JSON response
+            // into a Java Map<String, Object>
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url, HttpMethod.POST, request, Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                // Extract weekly_premium from the response
+                Object premium = response.getBody().get("weekly_premium");
+                if (premium != null) {
+                    log.info("ML premium calculated for {}: ₹{}", worker.getWorkerId(), premium);
+                    return new BigDecimal(premium.toString());
+                }
+            }
+
+        } catch (Exception e) {
+            log.warn("ML Premium API unreachable: {}. Using fallback premium.", e.getMessage());
+        }
+
+        return getFallbackPremium(worker, season);
+    }
+
+    private BigDecimal getFallbackPremium(Worker worker, String season) {
+        double weeklyEarnings = worker.getDailyEarnings() * worker.getDaysPerWeek();
+        double seasonMultiplier = switch (season) {
+            case "monsoon" -> 1.3;
+            case "summer"  -> 0.9;
+            case "winter"  -> 0.8;
+            default        -> 1.0;
+        };
+        double premium = weeklyEarnings * 0.018 * seasonMultiplier;
+        // Clamp to valid range
+        premium = Math.max(49, Math.min(200, premium));
+        log.info("Using fallback premium for {}: ₹{}", worker.getWorkerId(), premium);
+        return BigDecimal.valueOf(Math.round(premium));
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\shared\TriggerEngineClient.java
+================================================================================
+
+package com.devtrails.backend.shared;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+@Component
+@Slf4j
+public class TriggerEngineClient {
+
+    @Value("${trigger.engine.url}")
+    private String triggerEngineUrl;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    // ── FETCH PENDING TRIGGERS ────────────────────────────
+    // Calls GET /api/triggers from the trigger engine
+    // Returns a list of trigger events with status = pending_payout
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> fetchPendingTriggers() {
+        try {
+            String url = triggerEngineUrl + "/api/triggers";
+
+            // ParameterizedTypeReference tells RestTemplate
+            // to parse the JSON array into List<Map<String, Object>>
+            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK
+                    && response.getBody() != null) {
+
+                // Filter: only return events with status = pending_payout
+                return response.getBody().stream()
+                        .filter(event -> "pending_payout".equals(event.get("status")))
+                        .toList();
+            }
+
+        } catch (Exception e) {
+            log.warn("Could not reach trigger engine: {}", e.getMessage());
+        }
+
+        // Return empty list if trigger engine is unreachable
+        return Collections.emptyList();
+    }
+
+    // ── CHECK TRIGGER ENGINE HEALTH ───────────────────────
+    public boolean isHealthy() {
+        try {
+            String url = triggerEngineUrl + "/api/health";
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            return response.getStatusCode() == HttpStatus.OK;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\worker\Worker.java
+================================================================================
+
+package com.devtrails.backend.worker;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+
+
+@Entity
+@Table(name = "workers")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Worker {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+
+    @Column(name = "worker_id", unique = true, nullable = false, length = 20)
+    @NotBlank(message = "Worker ID is required")
+    private String workerId;
+
+    @Column(name = "name", nullable = false, length = 100)
+    @NotBlank(message = "Name is required")
+    @Size(min = 2, max = 100, message = "Name must be 2–100 characters")
+    private String name;
+
+    @Column(name = "phone", unique = true, nullable = false, length = 15)
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Enter a valid 10-digit Indian mobile number")
+    private String phone;
+
+    @Column(name = "email", unique = true, length = 100)
+    @Email(message = "Enter a valid email address")
+    private String email;
+
+    @Column(name = "zone_id", nullable = false, length = 60)
+    @NotBlank(message = "Zone is required")
+    private String zoneId;
+
+    @Column(name = "persona", nullable = false, length = 20)
+    @NotBlank(message = "Persona is required")
+    private String persona;
+
+    @Column(name = "daily_earnings", nullable = false)
+    @Min(value = 100, message = "Daily earnings must be at least ₹100")
+    @Max(value = 10000, message = "Daily earnings cannot exceed ₹10,000")
+    private Integer dailyEarnings;
+
+    @Column(name = "active_hours", nullable = false)
+    @Min(value = 1, message = "Active hours must be at least 1")
+    @Max(value = 16, message = "Active hours cannot exceed 16")
+    private Integer activeHours;
+
+
+    @Column(name = "shift", nullable = false, length = 20)
+    @NotBlank(message = "Shift is required")
+    private String shift;
+
+
+    @Column(name = "experience_months")
+    @Min(value = 0, message = "Experience cannot be negative")
+    private Integer experienceMonths = 0;
+
+    @Column(name = "days_per_week")
+    @Min(value = 1, message = "Must work at least 1 day per week")
+    @Max(value = 7, message = "Cannot work more than 7 days per week")
+    private Integer daysPerWeek = 6;
+
+
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\worker\WorkerController.java
+================================================================================
+
+package com.devtrails.backend.worker;
+
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
+
+
+@RestController
+@RequestMapping("/api/workers")
+
+@RequiredArgsConstructor
+@Slf4j
+@CrossOrigin(origins = "*")
+public class WorkerController {
+
+    private final WorkerService workerService;
+
+    @PostMapping("/register")
+    public ResponseEntity<WorkerDTO.AuthResponse> register(
+            @Valid @RequestBody WorkerDTO.RegisterRequest request) {
+        try {
+            WorkerDTO.AuthResponse response = workerService.register(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @Valid @RequestBody WorkerDTO.LoginRequest request) {
+        try {
+            WorkerDTO.AuthResponse response = workerService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{workerId}")
+    public ResponseEntity<WorkerDTO.ProfileResponse> getProfile(
+            @PathVariable String workerId) {
+        try {
+            return ResponseEntity.ok(workerService.getProfile(workerId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{workerId}")
+    public ResponseEntity<WorkerDTO.ProfileResponse> updateProfile(
+            @PathVariable String workerId,
+            @RequestBody WorkerDTO.UpdateRequest request) {
+        try {
+            return ResponseEntity.ok(workerService.updateProfile(workerId, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/zone/{zoneId}")
+    public ResponseEntity<List<WorkerDTO.ProfileResponse>> getWorkersByZone(
+            @PathVariable String zoneId) {
+        return ResponseEntity.ok(workerService.getActiveWorkersByZone(zoneId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<WorkerDTO.ProfileResponse>> getAllActive() {
+        return ResponseEntity.ok(workerService.getAllActiveWorkers());
+    }
+
+
+    @DeleteMapping("/{workerId}")
+    public ResponseEntity<Map<String, String>> deactivate(
+            @PathVariable String workerId) {
+        try {
+            workerService.deactivateWorker(workerId);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Worker deactivated successfully",
+                    "workerId", workerId
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, String>> health() {
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "service", "worker-service",
+                "port", "8080"
+        ));
+    }
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\worker\WorkerDTO.java
+================================================================================
+
+package com.devtrails.backend.worker;
+
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+
+public class WorkerDTO {
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RegisterRequest {
+
+        @NotBlank(message = "Name is required")
+        private String name;
+
+        @NotBlank(message = "Phone is required")
+        @Pattern(regexp = "^[6-9]\\d{9}$", message = "Enter valid 10-digit mobile number")
+        private String phone;
+
+        @Email(message = "Enter a valid email")
+        private String email;
+
+        @NotBlank(message = "Zone is required")
+        private String zoneId;
+
+        @NotBlank(message = "Persona is required")
+        private String persona;
+
+        @NotNull(message = "Daily earnings is required")
+        @Min(value = 100, message = "Daily earnings must be at least ₹100")
+        @Max(value = 10000, message = "Daily earnings cannot exceed ₹10,000")
+        private Integer dailyEarnings;
+
+        @NotNull(message = "Active hours is required")
+        @Min(value = 1) @Max(value = 16)
+        private Integer activeHours;
+
+        @NotBlank(message = "Shift is required")
+        private String shift;
+
+        private Integer experienceMonths = 0;
+        private Integer daysPerWeek = 6;
+
+        @NotBlank(message = "Password is required")
+        @Size(min = 6, message = "Password must be at least 6 characters")
+        private String password;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LoginRequest {
+
+        @NotBlank(message = "Phone is required")
+        private String phone;
+
+        @NotBlank(message = "Password is required")
+        private String password;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthResponse {
+        private String workerId;
+        private String name;
+        private String phone;
+        private String zoneId;
+        private String persona;
+        private Integer dailyEarnings;
+        private String token;
+        private String message;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProfileResponse {
+        private String workerId;
+        private String name;
+        private String phone;
+        private String email;
+        private String zoneId;
+        private String persona;
+        private Integer dailyEarnings;
+        private Integer activeHours;
+        private String shift;
+        private Integer experienceMonths;
+        private Integer daysPerWeek;
+        private Boolean isActive;
+        private LocalDateTime createdAt;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateRequest {
+        private Integer dailyEarnings;
+        private Integer activeHours;
+        private String shift;
+        private String zoneId;
+        private Integer daysPerWeek;
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\worker\WorkerRepository.java
+================================================================================
+
+package com.devtrails.backend.worker;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
+
+
+@Repository
+
+public interface WorkerRepository extends JpaRepository<Worker, Long> {
+
+    Optional<Worker> findByWorkerId(String workerId);
+
+    Optional<Worker> findByPhone(String phone);
+
+    Optional<Worker> findByEmail(String email);
+
+    List<Worker> findByZoneIdAndIsActive(String zoneId, Boolean isActive);
+
+    List<Worker> findByIsActive(Boolean isActive);
+
+    @Query("SELECT w.zoneId, COUNT(w) FROM Worker w WHERE w.isActive = true GROUP BY w.zoneId")
+    List<Object[]> countActiveWorkersByZone();
+
+    boolean existsByPhone(String phone);
+    boolean existsByEmail(String email);
+    boolean existsByWorkerId(String workerId);
+}
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\java\com\devtrails\backend\worker\WorkerService.java
+================================================================================
+
+package com.devtrails.backend.worker;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.devtrails.backend.config.JwtUtil;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+
+@Service
+
+
+@RequiredArgsConstructor
+
+@Slf4j
+public class WorkerService {
+
+    private final WorkerRepository workerRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    @Transactional
+    public WorkerDTO.AuthResponse register(WorkerDTO.RegisterRequest request) {
+
+        if (workerRepository.existsByPhone(request.getPhone())) {
+            throw new RuntimeException("Phone number already registered");
+        }
+
+        if (request.getEmail() != null && workerRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        String workerId = "GS-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+
+        Worker worker = new Worker();
+        worker.setWorkerId(workerId);
+        worker.setName(request.getName());
+        worker.setPhone(request.getPhone());
+        worker.setEmail(request.getEmail());
+        worker.setZoneId(request.getZoneId());
+        worker.setPersona(request.getPersona());
+        worker.setDailyEarnings(request.getDailyEarnings());
+        worker.setActiveHours(request.getActiveHours());
+        worker.setShift(request.getShift());
+        worker.setExperienceMonths(request.getExperienceMonths());
+        worker.setDaysPerWeek(request.getDaysPerWeek());
+        worker.setPasswordHash(hashedPassword);
+        worker.setIsActive(true);
+
+        workerRepository.save(worker);
+        log.info("Worker registered: {} ({})", worker.getName(), workerId);
+
+
+        String token = jwtUtil.generateToken(workerId);
+
+
+        return new WorkerDTO.AuthResponse(
+                workerId,
+                worker.getName(),
+                worker.getPhone(),
+                worker.getZoneId(),
+                worker.getPersona(),
+                worker.getDailyEarnings(),
+                token,
+                "Registration successful. Welcome to GigShield!"
+        );
+    }
+
+    public WorkerDTO.AuthResponse login(WorkerDTO.LoginRequest request) {
+
+        Worker worker = workerRepository.findByPhone(request.getPhone())
+                .orElseThrow(() -> new RuntimeException("Phone number not registered"));
+
+        if (!worker.getIsActive()) {
+            throw new RuntimeException("Account is deactivated. Contact support.");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), worker.getPasswordHash())) {
+            throw new RuntimeException("Incorrect password");
+        }
+
+        String token = jwtUtil.generateToken(worker.getWorkerId());
+        log.info("Worker logged in: {}", worker.getWorkerId());
+
+        return new WorkerDTO.AuthResponse(
+                worker.getWorkerId(),
+                worker.getName(),
+                worker.getPhone(),
+                worker.getZoneId(),
+                worker.getPersona(),
+                worker.getDailyEarnings(),
+                token,
+                "Login successful"
+        );
+    }
+
+    public WorkerDTO.ProfileResponse getProfile(String workerId) {
+        Worker worker = workerRepository.findByWorkerId(workerId)
+                .orElseThrow(() -> new RuntimeException("Worker not found: " + workerId));
+
+
+        WorkerDTO.ProfileResponse profile = new WorkerDTO.ProfileResponse();
+        profile.setWorkerId(worker.getWorkerId());
+        profile.setName(worker.getName());
+        profile.setPhone(worker.getPhone());
+        profile.setEmail(worker.getEmail());
+        profile.setZoneId(worker.getZoneId());
+        profile.setPersona(worker.getPersona());
+        profile.setDailyEarnings(worker.getDailyEarnings());
+        profile.setActiveHours(worker.getActiveHours());
+        profile.setShift(worker.getShift());
+        profile.setExperienceMonths(worker.getExperienceMonths());
+        profile.setDaysPerWeek(worker.getDaysPerWeek());
+        profile.setIsActive(worker.getIsActive());
+        profile.setCreatedAt(worker.getCreatedAt());
+        return profile;
+    }
+
+    // ── UPDATE PROFILE ────────────────────────────────────
+
+    @Transactional
+    public WorkerDTO.ProfileResponse updateProfile(String workerId, WorkerDTO.UpdateRequest request) {
+        Worker worker = workerRepository.findByWorkerId(workerId)
+                .orElseThrow(() -> new RuntimeException("Worker not found: " + workerId));
+
+        // Only update fields that were actually sent
+        // null check prevents overwriting with empty values
+        if (request.getDailyEarnings() != null) worker.setDailyEarnings(request.getDailyEarnings());
+        if (request.getActiveHours()   != null) worker.setActiveHours(request.getActiveHours());
+        if (request.getShift()         != null) worker.setShift(request.getShift());
+        if (request.getZoneId()        != null) worker.setZoneId(request.getZoneId());
+        if (request.getDaysPerWeek()   != null) worker.setDaysPerWeek(request.getDaysPerWeek());
+
+        workerRepository.save(worker);
+        log.info("Worker profile updated: {}", workerId);
+        return getProfile(workerId);
+    }
+
+    public List<WorkerDTO.ProfileResponse> getActiveWorkersByZone(String zoneId) {
+        return workerRepository
+                .findByZoneIdAndIsActive(zoneId, true)
+                .stream()
+                .map(w -> getProfile(w.getWorkerId()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deactivateWorker(String workerId) {
+        Worker worker = workerRepository.findByWorkerId(workerId)
+                .orElseThrow(() -> new RuntimeException("Worker not found: " + workerId));
+        worker.setIsActive(false);
+        workerRepository.save(worker);
+        log.info("Worker deactivated: {}", workerId);
+    }
+
+    public List<WorkerDTO.ProfileResponse> getAllActiveWorkers() {
+        return workerRepository.findByIsActive(true)
+                .stream()
+                .map(w -> getProfile(w.getWorkerId()))
+                .collect(Collectors.toList());
+    }
+}
+
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\main\resources\application.properties
+================================================================================
+
+spring.application.name=backend
+server.port=8080
+
+# PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/gigshield_db
+spring.datasource.username=postgres
+spring.datasource.password=Kuberan@2006
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# JWT
+jwt.secret=gigshield-super-secret-jwt-key-2026-devtrails
+jwt.expiration=86400000
+
+# Trigger Engine URL (your Flask server)
+trigger.engine.url=http://localhost:5001
+
+# ML Premium API URL
+ml.premium.url=http://localhost:5003
+
+
+================================================================================
+FILE: E:\Practice repository\Projects\DevTrails_Project\backend\backend\src\test\java\com\devtrails\backend\BackendApplicationTests.java
+================================================================================
+
+package com.devtrails.backend;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class BackendApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+
+

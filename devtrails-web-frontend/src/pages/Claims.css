@@ -1,0 +1,415 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.claims-page {
+    min-height: 100vh;
+    background: #0d0d14;
+    color: #e0e0f0;
+}
+
+/* ── NAVBAR ─────────────────────────────────────────── */
+.page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    background: #16161f;
+    border-bottom: 1px solid #2a2a3a;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.page-nav-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.btn-back {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    color: #9090b0;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back:hover { border-color: #6c63ff; color: #a78bfa; }
+
+/* ── BODY ────────────────────────────────────────────── */
+.claims-body {
+    padding: 24px 28px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* ── ANALYTICS ROW ───────────────────────────────────── */
+.analytics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.analytics-card {
+    background: #16161f;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.analytics-label {
+    font-size: 11px;
+    color: #5a5a72;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+}
+
+.analytics-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.analytics-value.green  { color: #22c55e; }
+.analytics-value.yellow { color: #f59e0b; }
+.analytics-value.purple { color: #a78bfa; }
+
+/* ── FILTER TABS ─────────────────────────────────────── */
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.filter-tab {
+    padding: 7px 16px;
+    background: #1e1e2e;
+    border: 1px solid #2a2a3a;
+    border-radius: 20px;
+    color: #7a7a9a;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-tab:hover { border-color: #6c63ff; color: #a78bfa; }
+
+.filter-tab.active {
+    background: rgba(108,99,255,0.15);
+    border-color: #6c63ff;
+    color: #a78bfa;
+}
+
+/* ── CLAIMS LIST ─────────────────────────────────────── */
+.claims-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.claim-card {
+    background: #16161f;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+    cursor: pointer;
+}
+
+.claim-card:hover { border-color: #3a3a52; }
+
+.claim-card.expanded { border-color: #6c63ff; }
+
+.claim-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+}
+
+.claim-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.claim-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #1e1e2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.claim-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0f0;
+    text-transform: capitalize;
+    margin-bottom: 3px;
+}
+
+.claim-subtitle {
+    font-size: 12px;
+    color: #4a4a62;
+}
+
+.claim-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.claim-payout {
+    font-size: 16px;
+    font-weight: 700;
+    color: #22c55e;
+}
+
+.status-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.status-approved { background: rgba(34,197,94,0.12);  color: #4ade80; }
+.status-flagged  { background: rgba(245,158,11,0.12); color: #fbbf24; }
+.status-rejected { background: rgba(239,68,68,0.12);  color: #f87171; }
+.status-pending  { background: rgba(99,102,241,0.12); color: #818cf8; }
+
+/* ── EXPANDED DETAIL ─────────────────────────────────── */
+.claim-detail {
+    border-top: 1px solid #2a2a3a;
+    padding: 16px 18px;
+    background: #13131c;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.detail-label {
+    font-size: 11px;
+    color: #5a5a72;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+}
+
+.detail-value {
+    font-size: 13px;
+    color: #c0c0d8;
+}
+
+.fraud-bar-wrap { grid-column: 1 / -1; }
+
+.fraud-bar {
+    height: 5px;
+    background: #2a2a3a;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+.fraud-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: #4a4a62;
+}
+
+.empty-state p { font-size: 14px; margin-top: 8px; }
+
+/* ── SKELETON ────────────────────────────────────────── */
+.skeleton {
+    background: linear-gradient(90deg, #1e1e2e 25%, #2a2a3a 50%, #1e1e2e 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 12px;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ── PROCESSING CARD ─────────────────────────────────── */
+.processing-card {
+    border-color: rgba(129, 140, 248, 0.4) !important;
+    background: rgba(129, 140, 248, 0.04) !important;
+}
+
+.status-processing {
+    background: rgba(129, 140, 248, 0.15);
+    color: #818cf8;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+}
+
+/* ── PROCESSING STEPPER ──────────────────────────────── */
+.processing-stepper {
+    padding: 16px 18px;
+    border-top: 1px solid #2a2a3a;
+    background: #13131c;
+}
+
+.stepper-waiting {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #5a5a72;
+    padding: 8px 0;
+}
+
+.stepper-step {
+    display: flex;
+    gap: 14px;
+    position: relative;
+}
+
+.stepper-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.stepper-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.stepper-icon.pulsing {
+    animation: iconPulse 1.5s infinite;
+}
+
+@keyframes iconPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(108, 99, 255, 0); }
+}
+
+.stepper-line {
+    width: 2px;
+    flex: 1;
+    min-height: 16px;
+    margin: 4px 0;
+    transition: background 0.3s ease;
+}
+
+.stepper-content {
+    padding-bottom: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.stepper-stage-name {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.stepper-processing-badge {
+    font-size: 10.5px;
+    background: rgba(129, 140, 248, 0.15);
+    color: #818cf8;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-weight: 600;
+    animation: pulse 1.5s infinite;
+}
+
+.stepper-done-badge {
+    font-size: 10.5px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.stepper-failed-badge {
+    font-size: 10.5px;
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.stepper-detail {
+    font-size: 12px;
+    color: #5a5a72;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* ── LOGS SECTION inside expanded claim ──────────────── */
+.logs-section {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    border-top: 1px solid #2a2a3a;
+    padding-top: 14px;
+}
+
+/* ── SPINNER SM ──────────────────────────────────────── */
+.spinner-sm {
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #818cf8;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
