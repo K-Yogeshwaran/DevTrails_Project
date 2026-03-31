@@ -2,6 +2,7 @@ package com.devtrails.backend.policy;
 
 
 import com.devtrails.backend.config.ApiException;
+import com.devtrails.backend.wallet.WalletService;
 import com.devtrails.backend.worker.Worker;
 import com.devtrails.backend.worker.WorkerRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class PolicyService {
 
     private final PolicyRepository policyRepository;
     private final WorkerRepository workerRepository;
+    private final WalletService walletService;
 
     // Fixed tier premiums — worker sees exactly this price, no ML involved
     private static final Map<String, BigDecimal> TIER_PREMIUMS = Map.of(
@@ -69,6 +71,13 @@ public class PolicyService {
         // Step 5: Fixed premium from tier — no ML call needed
         BigDecimal weeklyPremium = TIER_PREMIUMS.get(tier);
 
+        // Step 5b: Check wallet balance and debit premium
+        if (!walletService.hasSufficientBalance(request.getWorkerId(), weeklyPremium)) {
+            throw new ApiException(HttpStatus.PAYMENT_REQUIRED,
+                    "Insufficient wallet balance to pay premium of ₹" + weeklyPremium
+                    + ". Please top up your wallet.");
+        }
+
         // Step 6: Get coverage cap for chosen tier
         BigDecimal coverageCap = COVERAGE_CAPS.get(tier);
 
@@ -95,6 +104,16 @@ public class PolicyService {
         policyRepository.save(policy);
         log.info("Policy created: {} for worker {} | Tier: {} | Premium: ₹{}",
                 policyNumber, request.getWorkerId(), tier, weeklyPremium);
+
+        // Debit premium from wallet
+        walletService.debit(
+                request.getWorkerId(),
+                weeklyPremium,
+                "Weekly premium — " + tier + " plan (₹" + weeklyPremium + "/week)",
+                policyNumber,
+                "premium_debit"
+        );
+        log.info("Premium ₹{} debited from wallet for worker {}", weeklyPremium, request.getWorkerId());
 
         return buildResponse(policy, "Policy created successfully. Coverage active until " + weekEnd);
     }

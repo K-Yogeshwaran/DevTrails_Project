@@ -4,6 +4,7 @@ import com.devtrails.backend.claimlog.ClaimProcessingLog;
 import com.devtrails.backend.claimlog.ClaimProcessingLogRepository;
 import com.devtrails.backend.claims.Claim;
 import com.devtrails.backend.claims.ClaimRepository;
+import com.devtrails.backend.wallet.WalletService;
 import com.devtrails.backend.policy.PayoutCalculatorClient;
 import com.devtrails.backend.policy.Policy;
 import com.devtrails.backend.policy.PolicyRepository;
@@ -35,6 +36,7 @@ public class TriggerListenerService {
     private final ClaimRepository              claimRepo;
     private final ClaimProcessingLogRepository logRepo;
     private final PayoutCalculatorClient       payoutClient;
+    private final WalletService                walletService;
 
     private static final double FRAUD_THRESHOLD = 0.70;
 
@@ -59,7 +61,7 @@ public class TriggerListenerService {
     public void processResolvedEvent(TriggerEvent event) {
         String affectedRaw = event.getAffectedWorkerIds();
         if (affectedRaw == null || affectedRaw.isBlank()) {
-            log.info("No affected workers for event {} — skipping", event.getEventId());
+            log.info("No affected workers for event {} - skipping", event.getEventId());
             return;
         }
         for (String workerId : Arrays.asList(affectedRaw.split(","))) {
@@ -76,14 +78,14 @@ public class TriggerListenerService {
 
         String claimId = "CLM-" + workerId.replace("GS-", "") + "-" + System.currentTimeMillis();
 
-        // Stage 1 — Queued
+        // Stage 1 - Queued
         saveLog(claimId, "queued", "done",
                 "Claim queued | Trigger: " + event.getTriggerType()
                 + " in " + event.getZoneName()
                 + " | Duration: " + formatHours(event.getDisruptedHours()));
         sleep(1500);
 
-        // Stage 2 — Duplicate check
+        // Stage 2 - Duplicate check
         saveLog(claimId, "duplicate_check", "processing", "Checking for duplicate claims today...");
         sleep(1200);
         boolean isDuplicate = claimRepo.existsDuplicateClaim(
@@ -91,24 +93,24 @@ public class TriggerListenerService {
                 event.getStartedAt(), event.getStartedAt().plusDays(1));
         if (isDuplicate) {
             saveLog(claimId, "duplicate_check", "failed",
-                    "Duplicate rejected — already claimed " + event.getTriggerType() + " today");
+                    "Duplicate rejected - already claimed " + event.getTriggerType() + " today");
             return;
         }
-        saveLog(claimId, "duplicate_check", "done", "No duplicate found — proceeding");
+        saveLog(claimId, "duplicate_check", "done", "No duplicate found - proceeding");
         sleep(1000);
 
-        // Stage 3 — Policy check
+        // Stage 3 - Policy check
         saveLog(claimId, "policy_check", "processing", "Verifying active policy coverage...");
         sleep(1500);
         PolicyDTO.CoverageCheck coverage = policyService.checkCoverage(workerId, LocalDate.now());
         if (!coverage.isCovered()) {
             saveLog(claimId, "policy_check", "failed",
-                    "No active policy found for this week — claim rejected");
+                    "No active policy found for this week - claim rejected");
             return;
         }
         saveLog(claimId, "policy_check", "done",
                 "Active policy: " + coverage.getPolicyNumber()
-                + " | Remaining: \u20b9" + coverage.getCoverageRemaining());
+                + " | Remaining: Rs." + coverage.getCoverageRemaining());
 
         Worker worker = workerRepo.findByWorkerId(workerId).orElse(null);
         if (worker == null) {
@@ -124,35 +126,35 @@ public class TriggerListenerService {
                 ? Math.max(event.getDisruptedHours().doubleValue(), 0.5)
                 : 4.0;
 
-        // Stage 4 — ML calculation
+        // Stage 4 - ML calculation
         saveLog(claimId, "ml_calculation", "processing", "Running XGBoost payout model...");
         sleep(2000);
         double hourlyRate = (double) worker.getDailyEarnings() / worker.getActiveHours();
         BigDecimal payoutAmount = payoutClient.calculatePayout(
                 worker, event.getTriggerType(), disruptedHours, season);
         saveLog(claimId, "ml_calculation", "done",
-                "Hourly rate: \u20b9" + String.format("%.0f", hourlyRate) + "/hr"
+                "Hourly rate: Rs." + String.format("%.0f", hourlyRate) + "/hr"
                 + " | Disrupted: " + formatHours(event.getDisruptedHours())
                 + " | Season: " + season
-                + " | Persona: " + getPersonaFactor(worker.getPersona()) + "\u00d7"
-                + " | ML payout: \u20b9" + payoutAmount);
+                + " | Persona: " + getPersonaFactor(worker.getPersona()) + "x"
+                + " | ML payout: Rs." + payoutAmount);
         sleep(1000);
 
-        // Stage 5 — Coverage cap
+        // Stage 5 - Coverage cap
         saveLog(claimId, "coverage_cap", "processing", "Checking against weekly coverage cap...");
         sleep(1200);
         if (payoutAmount.compareTo(coverage.getCoverageRemaining()) > 0) {
             payoutAmount = coverage.getCoverageRemaining();
             saveLog(claimId, "coverage_cap", "done",
-                    "Payout capped at remaining coverage: \u20b9" + payoutAmount);
+                    "Payout capped at remaining coverage: Rs." + payoutAmount);
         } else {
             saveLog(claimId, "coverage_cap", "done",
-                    "\u20b9" + payoutAmount + " within \u20b9" + coverage.getCoverageRemaining()
-                    + " cap — full amount approved");
+                    "Rs." + payoutAmount + " within Rs." + coverage.getCoverageRemaining()
+                    + " cap - full amount approved");
         }
         sleep(1000);
 
-        // Stage 6 — Fraud check
+        // Stage 6 - Fraud check
         saveLog(claimId, "fraud_check", "processing", "Running fraud detection checks...");
         sleep(2000);
         double fraudScore = calculateFraudScore(worker, event.getZoneId());
@@ -160,10 +162,10 @@ public class TriggerListenerService {
         saveLog(claimId, "fraud_check", "done", buildFraudDetail(worker, event.getZoneId(), fraudScore));
         sleep(1000);
 
-        // Stage 7 — Final decision
+        // Stage 7 - Final decision
         saveLog(claimId, claimStatus, "processing",
                 "approved".equals(claimStatus)
-                        ? "Approving claim and deducting from coverage..."
+                        ? "Approving claim and crediting wallet..."
                         : "Flagging claim for manual review...");
         sleep(1500);
 
@@ -185,12 +187,20 @@ public class TriggerListenerService {
 
         if ("approved".equals(claimStatus)) {
             policyService.deductCoverage(coverage.getPolicyNumber(), payoutAmount);
+            // Credit payout to worker wallet
+            walletService.credit(
+                    workerId,
+                    payoutAmount,
+                    "Claim payout - " + event.getTriggerType().replace("_", " ") + " in " + event.getZoneName(),
+                    claimId,
+                    "claim_credit"
+            );
             saveLog(claimId, claimStatus, "done",
-                    "\u2705 Claim approved — \u20b9" + payoutAmount + " will be sent to your UPI");
-            log.info("Claim APPROVED: {} | worker={} | payout=\u20b9{}", claimId, workerId, payoutAmount);
+                    "Claim approved - Rs." + payoutAmount + " credited to your GigShield wallet");
+            log.info("Claim APPROVED: {} | worker={} | payout=Rs.{}", claimId, workerId, payoutAmount);
         } else {
             saveLog(claimId, claimStatus, "done",
-                    "\u26a0\ufe0f Flagged for manual review | Fraud score: "
+                    "Flagged for manual review | Fraud score: "
                     + String.format("%.0f", fraudScore * 100) + "%");
             log.warn("Claim FLAGGED: {} | worker={} | score={}", claimId, workerId, fraudScore);
         }
@@ -224,13 +234,13 @@ public class TriggerListenerService {
     private String buildFraudDetail(Worker worker, String zoneId, double score) {
         StringBuilder sb = new StringBuilder();
         sb.append("Score: ").append(String.format("%.0f", score * 100)).append("% | ");
-        sb.append(worker.getZoneId().equals(zoneId) ? "\u2705 Zone match" : "\u26a0\ufe0f Zone mismatch (+50%)").append(" | ");
-        sb.append(worker.getIsActive() ? "\u2705 Active account" : "\u26a0\ufe0f Inactive (+50%)").append(" | ");
+        sb.append(worker.getZoneId().equals(zoneId) ? "Zone match" : "Zone mismatch (+50%)").append(" | ");
+        sb.append(worker.getIsActive() ? "Active account" : "Inactive (+50%)").append(" | ");
         LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
         long recent = claimRepo.countRecentClaims(worker.getWorkerId(), oneWeekAgo);
-        if (recent > 5)      sb.append("\u26a0\ufe0f High velocity: ").append(recent).append(" claims/7d (+30%)");
-        else if (recent > 3) sb.append("\u26a0\ufe0f Moderate: ").append(recent).append(" claims/7d (+15%)");
-        else                 sb.append("\u2705 Normal: ").append(recent).append(" claims/7d");
+        if (recent > 5)      sb.append("High velocity: ").append(recent).append(" claims/7d (+30%)");
+        else if (recent > 3) sb.append("Moderate: ").append(recent).append(" claims/7d (+15%)");
+        else                 sb.append("Normal: ").append(recent).append(" claims/7d");
         sb.append(" | ").append(score > FRAUD_THRESHOLD ? "FLAGGED" : "PASSED");
         return sb.toString();
     }

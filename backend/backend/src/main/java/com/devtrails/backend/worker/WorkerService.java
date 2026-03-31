@@ -1,6 +1,7 @@
 package com.devtrails.backend.worker;
 
 import com.devtrails.backend.config.ApiException;
+import com.devtrails.backend.wallet.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ public class WorkerService {
     private final WorkerRepository workerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final WalletService walletService;
 
     @Transactional
     public WorkerDTO.AuthResponse register(WorkerDTO.RegisterRequest request) {
@@ -55,6 +57,10 @@ public class WorkerService {
 
         workerRepository.save(worker);
         log.info("Worker registered: {} ({})", worker.getName(), workerId);
+
+        // Create wallet with ₹1000 initial balance
+        walletService.createWallet(workerId);
+        log.info("Wallet created for worker {}", workerId);
 
 
         String token = jwtUtil.generateToken(workerId);

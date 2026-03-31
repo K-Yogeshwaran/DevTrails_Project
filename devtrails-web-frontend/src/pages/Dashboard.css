@@ -159,7 +159,7 @@
 /* ── STAT CARDS ──────────────────────────────────────── */
 .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
     margin-bottom: 20px;
 }
@@ -359,7 +359,7 @@
 /* ── ACTION BUTTONS ──────────────────────────────────── */
 .dash-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 12px;
     margin-top: 14px;
 }

@@ -6,6 +6,7 @@ import Register       from "./pages/Register";
 import Dashboard      from "./pages/Dashboard";
 import Policy         from "./pages/Policy";
 import Claims         from "./pages/Claims";
+import Wallet         from "./pages/Wallet";
 import AdminLogin     from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
                 <Route path="/policy"    element={<Protected><Policy /></Protected>} />
                 <Route path="/claims"    element={<Protected><Claims /></Protected>} />
+                <Route path="/wallet"    element={<Protected><Wallet /></Protected>} />
 
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin"       element={<AdminProtected><AdminDashboard /></AdminProtected>} />

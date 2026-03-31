@@ -68,6 +68,7 @@ function Dashboard() {
     const [profile,       setProfile]       = useState(null);
     const [policy,        setPolicy]        = useState(null);
     const [claims,        setClaims]        = useState([]);
+    const [wallet,        setWallet]        = useState(null);
     const [loading,       setLoading]       = useState(true);
     const [liveMsg,       setLiveMsg]       = useState("Listening for disruption events...");
     const [liveTriggers,  setLiveTriggers]  = useState(0);
@@ -139,6 +140,12 @@ function Dashboard() {
                 setPolicy(policyRes.data);
             } catch {
                 setPolicy(null);
+            }
+            try {
+                const walletRes = await API.get(`/wallet/${workerId}`);
+                setWallet(walletRes.data);
+            } catch {
+                setWallet(null);
             }
         } catch (err) {
             console.error(err);
@@ -471,6 +478,15 @@ function Dashboard() {
                         </span>
                     </div>
                     <div className="stat-card">
+                        <span className="stat-label">Wallet Balance</span>
+                        <span className="stat-value green">
+                            {wallet ? `₹${Number(wallet.balance).toFixed(0)}` : "—"}
+                        </span>
+                        <span className="stat-sub">
+                            {wallet ? `₹${Number(wallet.totalCredited).toFixed(0)} in · ₹${Number(wallet.totalDebited).toFixed(0)} out` : "Loading..."}
+                        </span>
+                    </div>
+                    <div className="stat-card">
                         <span className="stat-label">Coverage Left</span>
                         <span className="stat-value green">
                             {policy ? `₹${Number(policy.coverageRemaining).toFixed(0)}` : "—"}
@@ -568,6 +584,9 @@ function Dashboard() {
                     </button>
                     <button className="btn-action" onClick={() => navigate("/claims")}>
                         📋 View All Claims
+                    </button>
+                    <button className="btn-action" onClick={() => navigate("/wallet")}>
+                        💰 My Wallet
                     </button>
                 </div>
 

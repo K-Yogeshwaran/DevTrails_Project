@@ -6,12 +6,11 @@
     color: #e0e0f0;
 }
 
-/* ── NAVBAR ─────────────────────────────────────────── */
 .page-nav {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
-    padding: 16px 28px;
+    padding: 14px 28px;
     background: #16161f;
     border-bottom: 1px solid #2a2a3a;
     position: sticky;
@@ -23,12 +22,15 @@
     font-size: 16px;
     font-weight: 600;
     color: #fff;
+    grid-column: 1;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .btn-back {
+    grid-column: 3;
+    justify-self: end;
     padding: 8px 16px;
     background: transparent;
     border: 1px solid #2a2a3a;
@@ -37,6 +39,7 @@
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .btn-back:hover {
