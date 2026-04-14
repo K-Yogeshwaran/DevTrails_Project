@@ -96,7 +96,6 @@ if not exist "%VENV_DIR%" (
 call "%VENV_DIR%\Scripts\activate.bat"
 
 echo [SETUP] Installing Python dependencies...
-pip install --upgrade pip -q
 pip install -r "%SCRIPT_DIR%requirements.txt" -q
 echo [OK] Python dependencies installed
 echo.
@@ -127,27 +126,27 @@ echo.
 
 :: 1. Spring Boot Backend
 echo [1/5] Starting Spring Boot Backend (port 8080)...
-start "GigShield - Spring Boot [8080]" cmd /k "cd /d %SCRIPT_DIR%backend\backend && java -jar target\backend-0.0.1-SNAPSHOT.jar --spring.jpa.hibernate.ddl-auto=update 2>&1 | tee %LOG_DIR%\springboot.log"
+start "GigShield - Spring Boot [8080]" cmd /k "cd /d %SCRIPT_DIR%backend\backend && java -jar target\backend-0.0.1-SNAPSHOT.jar --spring.jpa.hibernate.ddl-auto=update > %LOG_DIR%\springboot.log 2>&1 & type %LOG_DIR%\springboot.log"
 timeout /t 3 /nobreak >nul
 
 :: 2. Mock Platform API
 echo [2/5] Starting Mock Platform API (port 5002)...
-start "GigShield - Mock Platform API [5002]" cmd /k "cd /d %SCRIPT_DIR%Trigger_System && call %VENV_DIR%\Scripts\activate.bat && python mock_platform_api.py 2>&1 | tee %LOG_DIR%\mock_platform.log"
+start "GigShield - Mock Platform API [5002]" cmd /k "cd /d %SCRIPT_DIR%Trigger_System && call %VENV_DIR%\Scripts\activate.bat && python mock_platform_api.py"
 timeout /t 2 /nobreak >nul
 
 :: 3. ML Payout Calculator
 echo [3/5] Starting ML Payout Calculator (port 5003)...
-start "GigShield - ML Payout API [5003]" cmd /k "cd /d %SCRIPT_DIR%Premium_Calculation && call %VENV_DIR%\Scripts\activate.bat && python app.py 2>&1 | tee %LOG_DIR%\ml_payout.log"
+start "GigShield - ML Payout API [5003]" cmd /k "cd /d %SCRIPT_DIR%Premium_Calculation && call %VENV_DIR%\Scripts\activate.bat && python app.py"
 timeout /t 2 /nobreak >nul
 
 :: 4. Trigger Engine
 echo [4/5] Starting Trigger Engine (port 5001)...
-start "GigShield - Trigger Engine [5001]" cmd /k "cd /d %SCRIPT_DIR%Trigger_System && call %VENV_DIR%\Scripts\activate.bat && python app.py 2>&1 | tee %LOG_DIR%\trigger_engine.log"
+start "GigShield - Trigger Engine [5001]" cmd /k "cd /d %SCRIPT_DIR%Trigger_System && call %VENV_DIR%\Scripts\activate.bat && python app.py"
 timeout /t 2 /nobreak >nul
 
 :: 5. React Frontend
 echo [5/5] Starting React Frontend (port 5173)...
-start "GigShield - React Frontend [5173]" cmd /k "cd /d %SCRIPT_DIR%devtrails-web-frontend && npm run dev 2>&1 | tee %LOG_DIR%\frontend.log"
+start "GigShield - React Frontend [5173]" cmd /k "cd /d %SCRIPT_DIR%devtrails-web-frontend && npm run dev"
 timeout /t 3 /nobreak >nul
 
 :: ── DONE ─────────────────────────────────────────────────────────────────────
