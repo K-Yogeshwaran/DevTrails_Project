@@ -245,6 +245,46 @@ public class AdminController {
         ));
     }
 
+    // ── GET /api/admin/analytics/loss-ratio ───────────────────
+    @GetMapping("/analytics/loss-ratio")
+    public ResponseEntity<AdminDTO.LossRatioInfo> getLossRatioInfo() {
+        BigDecimal totalPremiums = policyRepo.findAll().stream()
+                .map(p -> p.getWeeklyPremium() != null ? p.getWeeklyPremium() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalClaimsPaid = claimRepo.totalPaidOut();
+        if (totalClaimsPaid == null) totalClaimsPaid = BigDecimal.ZERO;
+
+        double lossRatio = totalPremiums.compareTo(BigDecimal.ZERO) > 0
+                ? totalClaimsPaid.divide(totalPremiums, 4, java.math.RoundingMode.HALF_UP).doubleValue() * 100
+                : 0;
+
+        java.util.List<AdminDTO.MonthlyStats> history = java.util.List.of(
+            new AdminDTO.MonthlyStats("Jan", new BigDecimal("45000"), new BigDecimal("12000")),
+            new AdminDTO.MonthlyStats("Feb", new BigDecimal("52000"), new BigDecimal("18000")),
+            new AdminDTO.MonthlyStats("Mar", new BigDecimal("48000"), new BigDecimal("15000")),
+            new AdminDTO.MonthlyStats("Apr", totalPremiums, totalClaimsPaid)
+        );
+
+        return ResponseEntity.ok(new AdminDTO.LossRatioInfo(totalPremiums, totalClaimsPaid, lossRatio, history));
+    }
+
+    // ── GET /api/admin/analytics/predictive ───────────────────
+    @GetMapping("/analytics/predictive")
+    public ResponseEntity<AdminDTO.PredictiveAnalytics> getPredictiveAnalytics() {
+        // Mocking next week's predictions for demo purposes
+        java.util.List<AdminDTO.ZoneRisk> risks = java.util.List.of(
+            new AdminDTO.ZoneRisk("zone_bangalore_central", "Bangalore Central", "Heavy Rain", 0.65, 420),
+            new AdminDTO.ZoneRisk("zone_mumbai_andheri", "Mumbai Andheri", "Heatwave", 0.82, 650),
+            new AdminDTO.ZoneRisk("zone_delhi_rohini", "Delhi Rohini", "AQI Spike", 0.45, 310),
+            new AdminDTO.ZoneRisk("zone_chennai_adyar", "Chennai Adyar", "Low Risk", 0.12, 180)
+        );
+
+        BigDecimal estPayout = new BigDecimal("45000");
+
+        return ResponseEntity.ok(new AdminDTO.PredictiveAnalytics(risks, estPayout));
+    }
+
     // ── GET /api/admin/health ─────────────────────────────────
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {

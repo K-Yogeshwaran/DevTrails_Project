@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import "./AdminDashboard.css";
+import AdminAnalytics from "./AdminAnalytics";
 
 const TRIGGER_TYPES = [
     { key: "rainfall",          label: "Heavy Rainfall",      emoji: "🌧️", value: 45  },
@@ -162,7 +163,7 @@ function AdminDashboard() {
             <nav className="admin-nav">
                 <div className="admin-nav-brand">🛡️ GigShield <span>Admin</span></div>
                 <div className="admin-nav-tabs">
-                    {["overview", "zones", "claims", "workers", "feed"].map(t => (
+                    {["overview", "analytics", "zones", "claims", "workers", "feed"].map(t => (
                         <button key={t} className={`admin-tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
                             {t.charAt(0).toUpperCase() + t.slice(1)}
                         </button>
@@ -426,8 +427,10 @@ function AdminDashboard() {
                             </div>
                         )}
                     </div>
+                {/* ── ANALYTICS TAB ── */}
+                {tab === "analytics" && (
+                    <AdminAnalytics api={api} />
                 )}
-
             </div>
 
             {/* TRIGGER MODAL */}

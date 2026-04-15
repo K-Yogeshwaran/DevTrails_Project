@@ -197,6 +197,34 @@
     color: #4a4a62;
 }
 
+.stat-card.highlight {
+    background: linear-gradient(135deg, #16161f 0%, #1a1a2e 100%);
+    border: 1px solid rgba(108, 99, 255, 0.4);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.protection-health {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.health-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.health-dot.healthy {
+    background: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+}
+
+.health-dot.danger {
+    background: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
 /* ── BOTTOM GRID ─────────────────────────────────────── */
 .dash-grid {
     display: grid;

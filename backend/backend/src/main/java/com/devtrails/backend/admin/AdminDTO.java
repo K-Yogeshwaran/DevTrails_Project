@@ -24,4 +24,42 @@ public class AdminDTO {
         private LocalDateTime triggeredAt;
         private LocalDateTime processedAt;
     }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LossRatioInfo {
+        private BigDecimal totalPremiums;
+        private BigDecimal totalClaimsPaid;
+        private double lossRatio;
+        private java.util.List<MonthlyStats> history;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MonthlyStats {
+        private String month;
+        private BigDecimal premiums;
+        private BigDecimal claims;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PredictiveAnalytics {
+        private java.util.List<ZoneRisk> zoneRisks;
+        private BigDecimal estimatedNextWeekPayout;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ZoneRisk {
+        private String zoneId;
+        private String zoneName;
+        private String primaryRisk; // e.g., "Heavy Rain", "Heatwave"
+        private double riskProbability; // 0.0 to 1.0
+        private int affectedWorkers;
+    }
 }

@@ -463,18 +463,23 @@ function Dashboard() {
 
                 {/* STATS */}
                 <div className="stats-row">
-                    <div className="stat-card">
-                        <span className="stat-label">Total Claims</span>
-                        <span className="stat-value accent">{claims.length}</span>
-                        <span className="stat-sub">{approved} approved · {flagged} flagged</span>
+                    <div className="stat-card highlight">
+                        <span className="stat-label">Earnings Protected</span>
+                        <span className="stat-value accent">
+                            ₹{claims.filter(c => c.status === "approved").reduce((sum, c) => sum + Number(c.payoutAmount), 0).toFixed(0)}
+                        </span>
+                        <span className="stat-sub">Recovered from {approved} disruptions</span>
                     </div>
                     <div className="stat-card">
-                        <span className="stat-label">Active Policy</span>
-                        <span className={`stat-value ${policy ? "green" : ""}`}>
-                            {policy ? policy.tier.toUpperCase() : "None"}
-                        </span>
+                        <span className="stat-label">Protection Health</span>
+                        <div className="protection-health">
+                            <span className={`health-dot ${policy ? "healthy" : "danger"}`} />
+                            <span className="stat-value">
+                                {policy ? "Active" : "Disabled"}
+                            </span>
+                        </div>
                         <span className="stat-sub">
-                            {policy ? `₹${policy.weeklyPremium}/week` : "No coverage this week"}
+                            {policy ? `Verified till ${policy.weekEnd}` : "Needs attention"}
                         </span>
                     </div>
                     <div className="stat-card">
@@ -483,16 +488,16 @@ function Dashboard() {
                             {wallet ? `₹${Number(wallet.balance).toFixed(0)}` : "—"}
                         </span>
                         <span className="stat-sub">
-                            {wallet ? `₹${Number(wallet.totalCredited).toFixed(0)} in · ₹${Number(wallet.totalDebited).toFixed(0)} out` : "Loading..."}
+                            Instant UPI Payouts Enabled
                         </span>
                     </div>
                     <div className="stat-card">
-                        <span className="stat-label">Coverage Left</span>
-                        <span className="stat-value green">
-                            {policy ? `₹${Number(policy.coverageRemaining).toFixed(0)}` : "—"}
+                        <span className="stat-label">Weekly Coverage</span>
+                        <span className="stat-value">
+                            {policy ? `₹${Number(policy.coverageRemaining).toFixed(0)}` : "₹0"}
                         </span>
                         <span className="stat-sub">
-                            {policy ? `of ₹${policy.coverageCap} cap` : "Subscribe to get covered"}
+                            {policy ? `of ₹${policy.coverageCap} limit` : "Subscribe to start"}
                         </span>
                     </div>
                 </div>
