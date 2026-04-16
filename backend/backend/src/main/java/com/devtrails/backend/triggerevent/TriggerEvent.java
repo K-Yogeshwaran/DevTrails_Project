@@ -1,17 +1,11 @@
 package com.devtrails.backend.triggerevent;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "trigger_events")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TriggerEvent {
 
     @Id
@@ -55,8 +49,36 @@ public class TriggerEvent {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    public TriggerEvent() {}
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getEventId() { return eventId; }
+    public void setEventId(String eventId) { this.eventId = eventId; }
+    public String getTriggerType() { return triggerType; }
+    public void setTriggerType(String triggerType) { this.triggerType = triggerType; }
+    public String getZoneId() { return zoneId; }
+    public void setZoneId(String zoneId) { this.zoneId = zoneId; }
+    public String getZoneName() { return zoneName; }
+    public void setZoneName(String zoneName) { this.zoneName = zoneName; }
+    public BigDecimal getTriggerValue() { return triggerValue; }
+    public void setTriggerValue(BigDecimal triggerValue) { this.triggerValue = triggerValue; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getStartedAt() { return startedAt; }
+    public void setStartedAt(LocalDateTime startedAt) { this.startedAt = startedAt; }
+    public LocalDateTime getEndedAt() { return endedAt; }
+    public void setEndedAt(LocalDateTime endedAt) { this.endedAt = endedAt; }
+    public BigDecimal getDisruptedHours() { return disruptedHours; }
+    public void setDisruptedHours(BigDecimal disruptedHours) { this.disruptedHours = disruptedHours; }
+    public String getAffectedWorkerIds() { return affectedWorkerIds; }
+    public void setAffectedWorkerIds(String affectedWorkerIds) { this.affectedWorkerIds = affectedWorkerIds; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

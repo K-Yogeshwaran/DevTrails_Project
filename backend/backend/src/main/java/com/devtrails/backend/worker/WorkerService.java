@@ -2,8 +2,8 @@ package com.devtrails.backend.worker;
 
 import com.devtrails.backend.config.ApiException;
 import com.devtrails.backend.wallet.WalletService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,17 +15,22 @@ import java.util.stream.Collectors;
 
 
 @Service
-
-
-@RequiredArgsConstructor
-
-@Slf4j
 public class WorkerService {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkerService.class);
 
     private final WorkerRepository workerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final WalletService walletService;
+
+    public WorkerService(WorkerRepository workerRepository, PasswordEncoder passwordEncoder,
+                         JwtUtil jwtUtil, WalletService walletService) {
+        this.workerRepository = workerRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+        this.walletService = walletService;
+    }
 
     @Transactional
     public WorkerDTO.AuthResponse register(WorkerDTO.RegisterRequest request) {

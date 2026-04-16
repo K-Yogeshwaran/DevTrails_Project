@@ -1,6 +1,7 @@
 package com.devtrails.backend.payout.gateway;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@Slf4j
 public class UPISimulatorGateway implements PaymentGateway {
+
+    private static final Logger log = LoggerFactory.getLogger(UPISimulatorGateway.class);
 
     @Value("${upi.simulator.url}")
     private String upiSimulatorUrl;

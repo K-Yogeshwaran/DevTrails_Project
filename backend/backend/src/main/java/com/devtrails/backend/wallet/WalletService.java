@@ -1,8 +1,8 @@
 package com.devtrails.backend.wallet;
 
 import com.devtrails.backend.config.ApiException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,12 +11,17 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class WalletService {
+
+    private static final Logger log = LoggerFactory.getLogger(WalletService.class);
 
     private final WalletRepository            walletRepo;
     private final WalletTransactionRepository txRepo;
+
+    public WalletService(WalletRepository walletRepo, WalletTransactionRepository txRepo) {
+        this.walletRepo = walletRepo;
+        this.txRepo = txRepo;
+    }
 
     private static final BigDecimal INITIAL_BALANCE = new BigDecimal("1000.00");
 

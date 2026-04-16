@@ -1,6 +1,5 @@
 package com.devtrails.backend.triggerevent;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,11 +9,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trigger-events")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class TriggerEventController {
 
     private final TriggerEventService service;
+
+    public TriggerEventController(TriggerEventService service) {
+        this.service = service;
+    }
 
     // Called by Python trigger engine when disruption starts
     @PostMapping

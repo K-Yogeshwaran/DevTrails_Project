@@ -1,8 +1,8 @@
 package com.devtrails.backend.dashboard;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class DashboardWebSocketService extends TextWebSocketHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(DashboardWebSocketService.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     

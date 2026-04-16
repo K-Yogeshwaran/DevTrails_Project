@@ -5,8 +5,8 @@ import com.devtrails.backend.claims.ClaimRepository;
 import com.devtrails.backend.config.ApiException;
 import com.devtrails.backend.worker.Worker;
 import com.devtrails.backend.worker.WorkerRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,15 +24,25 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payouts")
-@RequiredArgsConstructor
-@Slf4j
 @CrossOrigin(origins = "*")
 public class PayoutController {
+
+    private static final Logger log = LoggerFactory.getLogger(PayoutController.class);
 
     private final PayoutService payoutService;
     private final PayoutRepository payoutRepository;
     private final ClaimRepository claimRepository;
     private final WorkerRepository workerRepository;
+
+    public PayoutController(PayoutService payoutService,
+                            PayoutRepository payoutRepository,
+                            ClaimRepository claimRepository,
+                            WorkerRepository workerRepository) {
+        this.payoutService = payoutService;
+        this.payoutRepository = payoutRepository;
+        this.claimRepository = claimRepository;
+        this.workerRepository = workerRepository;
+    }
 
     // POST /api/payouts/initiate
     @PostMapping("/initiate")

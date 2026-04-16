@@ -1,16 +1,10 @@
 package com.devtrails.backend.fraud;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "fraud_detection_logs")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class FraudDetectionLog {
 
     @Id
@@ -50,6 +44,23 @@ public class FraudDetectionLog {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    public FraudDetectionLog() {}
+
+    public FraudDetectionLog(Long id, String claimId, String workerId, String detectionType, Double riskScore, String riskLevel, String detectionDetails, String actionTaken, String ipAddress, String userAgent, String deviceFingerprint, LocalDateTime createdAt) {
+        this.id = id;
+        this.claimId = claimId;
+        this.workerId = workerId;
+        this.detectionType = detectionType;
+        this.riskScore = riskScore;
+        this.riskLevel = riskLevel;
+        this.detectionDetails = detectionDetails;
+        this.actionTaken = actionTaken;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
+        this.deviceFingerprint = deviceFingerprint;
+        this.createdAt = createdAt;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -75,4 +86,30 @@ public class FraudDetectionLog {
         if (score >= 0.4) return "MEDIUM";
         return "LOW";
     }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getClaimId() { return claimId; }
+    public void setClaimId(String claimId) { this.claimId = claimId; }
+    public String getWorkerId() { return workerId; }
+    public void setWorkerId(String workerId) { this.workerId = workerId; }
+    public String getDetectionType() { return detectionType; }
+    public void setDetectionType(String detectionType) { this.detectionType = detectionType; }
+    public Double getRiskScore() { return riskScore; }
+    public void setRiskScore(Double riskScore) { this.riskScore = riskScore; }
+    public String getRiskLevel() { return riskLevel; }
+    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+    public String getDetectionDetails() { return detectionDetails; }
+    public void setDetectionDetails(String detectionDetails) { this.detectionDetails = detectionDetails; }
+    public String getActionTaken() { return actionTaken; }
+    public void setActionTaken(String actionTaken) { this.actionTaken = actionTaken; }
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public String getUserAgent() { return userAgent; }
+    public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
+    public String getDeviceFingerprint() { return deviceFingerprint; }
+    public void setDeviceFingerprint(String deviceFingerprint) { this.deviceFingerprint = deviceFingerprint; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

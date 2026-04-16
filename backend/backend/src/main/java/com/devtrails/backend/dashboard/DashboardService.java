@@ -1,8 +1,8 @@
 package com.devtrails.backend.dashboard;
 
 import com.devtrails.backend.worker.Worker;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,12 +14,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class DashboardService {
+
+    private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
 
     private final DashboardAnalyticsRepository analyticsRepository;
     private final DashboardWebSocketService webSocketService;
+
+    public DashboardService(DashboardAnalyticsRepository analyticsRepository,
+                            DashboardWebSocketService webSocketService) {
+        this.analyticsRepository = analyticsRepository;
+        this.webSocketService = webSocketService;
+    }
 
     // Worker Dashboard Methods
     public WorkerDashboardData getWorkerDashboard(String workerId) {
@@ -39,11 +45,11 @@ public class DashboardService {
         WorkerDashboardData data = getWorkerDashboard(workerId);
         
         // Calculate protection based on approved claims vs potential earnings
-        BigDecimal potentialEarnings = data.getDailyEarnings()
-                .multiply(BigDecimal.valueOf(data.getActiveHours()))
-                .multiply(BigDecimal.valueOf(data.getDaysPerWeek() * 4)); // 4 weeks
+        BigDecimal potentialEarnings = data.dailyEarnings()
+                .multiply(BigDecimal.valueOf(data.activeHours()))
+                .multiply(BigDecimal.valueOf(data.daysPerWeek() * 4)); // 4 weeks
         
-        BigDecimal actualEarnings = potentialEarnings.add(data.getTotalPayoutsReceived());
+        BigDecimal actualEarnings = potentialEarnings.add(data.totalPayoutsReceived());
         
         return actualEarnings.compareTo(potentialEarnings) >= 0 ? 
                 actualEarnings : potentialEarnings;
@@ -67,13 +73,13 @@ public class DashboardService {
         List<LossRatioData> lossRatios = getLossRatios();
         
         BigDecimal totalPaid = lossRatios.stream()
-                .map(LossRatioData::getTotalPaid)
+                .map(LossRatioData::totalPaid)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         BigDecimal totalValue = lossRatios.stream()
-                .map(lr -> lr.getTotalPaid().add(
-                        BigDecimal.valueOf(lr.getRejectedClaims() * 100)
-                                .add(BigDecimal.valueOf(lr.getFlaggedClaims() * 50))
+                .map(lr -> lr.totalPaid().add(
+                        BigDecimal.valueOf(lr.rejectedClaims() * 100)
+                                .add(BigDecimal.valueOf(lr.flaggedClaims() * 50))
                 ))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
@@ -113,7 +119,7 @@ public class DashboardService {
         // Calculate confidence score
         double confidenceScore = calculatePredictionConfidence(analytics);
         
-        LocalDateTime weekStart = LocalDateTime.now().plusWeeks(1).withDayOfWeek(1).withHour(0).withMinute(0);
+        LocalDateTime weekStart = LocalDateTime.now().plusWeeks(1).with(java.time.DayOfWeek.MONDAY).withHour(0).withMinute(0);
         LocalDateTime weekEnd = weekStart.plusDays(6).withHour(23).withMinute(59);
         
         return new WeeklyPrediction(
@@ -188,21 +194,14 @@ public class DashboardService {
 
     // Helper Methods
     private PredictiveAnalytics convertToPredictiveAnalytics(Object[] arr) {
-        PredictiveAnalytics analytics = new PredictiveAnalytics();
-        analytics.setTriggerType(arr[0].toString());
-        analytics.setClaimCount(((Number) arr[1]).longValue());
-        analytics.setAvgDisruptedHours(((Number) arr[2]).doubleValue());
-        analytics.setTotalPayout(new BigDecimal(arr[3].toString()));
-        analytics.setDayOfWeek(((Number) arr[4]).intValue());
-        analytics.setHourOfDay(((Number) arr[5]).intValue());
-        
-        // Calculate risk and prediction
-        double riskScore = analytics.calculateRiskScore();
-        analytics.setRiskScore(riskScore);
-        analytics.setPrediction(analytics.generatePrediction());
-        analytics.setLastUpdated(LocalDateTime.now());
-        
-        return analytics;
+        return PredictiveAnalytics.from(
+                arr[0].toString(),
+                ((Number) arr[1]).longValue(),
+                ((Number) arr[2]).doubleValue(),
+                new BigDecimal(arr[3].toString()),
+                ((Number) arr[4]).intValue(),
+                ((Number) arr[5]).intValue()
+        );
     }
 
     private int calculatePredictedClaims(List<Object[]> analytics) {
@@ -307,12 +306,12 @@ public class DashboardService {
     private Map<String, Object> generatePredictiveInsights(List<PredictiveAnalytics> data) {
         return Map.of(
                 "highRiskPeriods", data.stream()
-                        .filter(p -> p.getRiskScore() > 0.7)
-                        .map(p -> p.getHourOfDay() + ":00 - " + (p.getHourOfDay() + 1) + ":00")
+                        .filter(p -> p.riskScore() > 0.7)
+                        .map(p -> p.hourOfDay() + ":00 - " + (p.hourOfDay() + 1) + ":00")
                         .collect(Collectors.toList()),
                 "mostCommonTriggers", data.stream()
                         .collect(Collectors.groupingBy(
-                                PredictiveAnalytics::getTriggerType,
+                                PredictiveAnalytics::triggerType,
                                 Collectors.counting()
                         ))
                         .entrySet().stream()
@@ -321,7 +320,7 @@ public class DashboardService {
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toList()),
                 "averageClaimValues", data.stream()
-                        .mapToDouble(PredictiveAnalytics::getTotalPayout)
+                        .mapToDouble(p -> p.totalPayout().doubleValue())
                         .average()
                         .orElse(0.0)
         );
@@ -330,13 +329,13 @@ public class DashboardService {
     private Map<String, Object> generateZonePerformanceInsights(List<ZoneAnalyticsData> data) {
         return Map.of(
                 "topPerformingZones", data.stream()
-                        .sorted((z1, z2) -> z2.getTotalPayouts().compareTo(z1.getTotalPayouts()))
+                        .sorted((z1, z2) -> z2.totalPayouts().compareTo(z1.totalPayouts()))
                         .limit(5)
-                        .map(ZoneAnalyticsData::getZoneId)
+                        .map(ZoneAnalyticsData::zoneId)
                         .collect(Collectors.toList()),
                 "highRiskZones", data.stream()
                         .filter(z -> z.getZoneRiskScore().compareTo(BigDecimal.valueOf(0.6)) >= 0)
-                        .map(ZoneAnalyticsData::getZoneId)
+                        .map(ZoneAnalyticsData::zoneId)
                         .collect(Collectors.toList()),
                 "averageClaimsPerWorker", data.stream()
                         .mapToDouble(z -> z.getAverageClaimsPerWorker().doubleValue())
@@ -354,7 +353,7 @@ public class DashboardService {
                         )),
                 "weatherTriggerPatterns", data.stream()
                         .collect(Collectors.groupingBy(
-                                WeatherDisruptionCorrelation::getTriggerType,
+                                WeatherDisruptionCorrelation::triggerType,
                                 Collectors.counting()
                         )),
                 "dayOfWeekPatterns", data.stream()
@@ -369,7 +368,7 @@ public class DashboardService {
         return Map.of(
                 "highRiskWorkers", data.stream()
                         .filter(w -> "HIGH_RISK".equals(w.getRiskCategory()))
-                        .map(RiskAssessmentData::getWorkerId)
+                        .map(RiskAssessmentData::workerId)
                         .collect(Collectors.toList()),
                 "riskDistribution", data.stream()
                         .collect(Collectors.groupingBy(

@@ -1,39 +1,53 @@
 package com.devtrails.backend.dashboard;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class RiskAssessmentData {
-    private String workerId;
-    private String workerName;
-    private String zoneId;
-    private String persona;
-    private Integer experienceMonths;
-    private BigDecimal dailyEarnings;
-    private Long totalClaims;
-    private BigDecimal totalPaid;
-    private Long rejectedClaims;
-    private Long flaggedClaims;
-    private Double avgDisruptedHours;
-    private Double rejectionRate;
-    private LocalDateTime lastUpdated;
-    
-    // Risk scoring
+public record RiskAssessmentData(
+    String workerId,
+    String workerName,
+    String zoneId,
+    String persona,
+    Integer experienceMonths,
+    BigDecimal dailyEarnings,
+    Long totalClaims,
+    BigDecimal totalPaid,
+    Long rejectedClaims,
+    Long flaggedClaims,
+    Double avgDisruptedHours,
+    Double rejectionRate,
+    LocalDateTime lastUpdated
+) {
+    // Constructor for JPQL query
+    public RiskAssessmentData(String workerId, String workerName, String zoneId, String persona,
+                             Object experienceMonths, Object dailyEarnings, Object totalClaims,
+                             Object totalPaid, Object rejectedClaims, Object flaggedClaims,
+                             Object avgDisruptedHours, Object rejectionRate) {
+        this(
+            workerId,
+            workerName,
+            zoneId,
+            persona,
+            experienceMonths != null ? ((Number) experienceMonths).intValue() : 0,
+            dailyEarnings != null ? new BigDecimal(dailyEarnings.toString()) : BigDecimal.ZERO,
+            totalClaims != null ? ((Number) totalClaims).longValue() : 0L,
+            totalPaid != null ? new BigDecimal(totalPaid.toString()) : BigDecimal.ZERO,
+            rejectedClaims != null ? ((Number) rejectedClaims).longValue() : 0L,
+            flaggedClaims != null ? ((Number) flaggedClaims).longValue() : 0L,
+            avgDisruptedHours != null ? ((Number) avgDisruptedHours).doubleValue() : 0.0,
+            rejectionRate != null ? ((Number) rejectionRate).doubleValue() : 0.0,
+            LocalDateTime.now()
+        );
+    }
+
     public BigDecimal calculateOverallRiskScore() {
         if (totalClaims == null) return BigDecimal.valueOf(0.1);
         double claimRisk = totalClaims > 10 ? 0.4 : totalClaims > 5 ? 0.3 : totalClaims > 2 ? 0.2 : 0.1;
-        double rejectionRisk = (rejectionRate != null && rejectionRate > 30) ? 0.3 : (rejectionRate != null && rejectionRate > 15) ? 0.2 : (rejectionRate != null && rejectionRate > 5) ? 0.1 : 0.0;
-        double experienceRisk = (experienceMonths != null && experienceMonths < 3) ? 0.3 : (experienceMonths != null && experienceMonths < 6) ? 0.2 : (experienceMonths != null && experienceMonths < 12) ? 0.1 : 0.0;
-        double earningsRisk = (dailyEarnings != null && dailyEarnings.compareTo(BigDecimal.valueOf(300)) < 0) ? 0.2 : 0.0;
+        double rRisk = (rejectionRate != null && rejectionRate > 30) ? 0.3 : (rejectionRate != null && rejectionRate > 15) ? 0.2 : (rejectionRate != null && rejectionRate > 5) ? 0.1 : 0.0;
+        double eRisk = (experienceMonths != null && experienceMonths < 3) ? 0.3 : (experienceMonths != null && experienceMonths < 6) ? 0.2 : (experienceMonths != null && experienceMonths < 12) ? 0.1 : 0.0;
+        double dRisk = (dailyEarnings != null && dailyEarnings.compareTo(BigDecimal.valueOf(300)) < 0) ? 0.2 : 0.0;
         
-        double totalRisk = claimRisk + rejectionRisk + experienceRisk + earningsRisk;
+        double totalRisk = claimRisk + rRisk + eRisk + dRisk;
         return BigDecimal.valueOf(Math.min(totalRisk, 1.0));
     }
     

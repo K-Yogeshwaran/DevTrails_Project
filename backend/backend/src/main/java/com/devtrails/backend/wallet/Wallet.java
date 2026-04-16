@@ -1,17 +1,11 @@
 package com.devtrails.backend.wallet;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "wallets")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Wallet {
 
     @Id
@@ -36,6 +30,18 @@ public class Wallet {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public Wallet() {}
+
+    public Wallet(Long id, String workerId, BigDecimal balance, BigDecimal totalCredited, BigDecimal totalDebited, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.workerId = workerId;
+        this.balance = balance;
+        this.totalCredited = totalCredited;
+        this.totalDebited = totalDebited;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -46,4 +52,20 @@ public class Wallet {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getWorkerId() { return workerId; }
+    public void setWorkerId(String workerId) { this.workerId = workerId; }
+    public BigDecimal getBalance() { return balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
+    public BigDecimal getTotalCredited() { return totalCredited; }
+    public void setTotalCredited(BigDecimal totalCredited) { this.totalCredited = totalCredited; }
+    public BigDecimal getTotalDebited() { return totalDebited; }
+    public void setTotalDebited(BigDecimal totalDebited) { this.totalDebited = totalDebited; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

@@ -1,7 +1,7 @@
 package com.devtrails.backend.fraud;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,12 +11,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/fraud")
-@RequiredArgsConstructor
-@Slf4j
 @CrossOrigin(origins = "*")
 public class FraudDetectionController {
 
+    private static final Logger log = LoggerFactory.getLogger(FraudDetectionController.class);
+
     private final FraudDetectionLogRepository fraudLogRepository;
+
+    public FraudDetectionController(FraudDetectionLogRepository fraudLogRepository) {
+        this.fraudLogRepository = fraudLogRepository;
+    }
 
     // GET /api/fraud/logs/{claimId}
     @GetMapping("/logs/{claimId}")

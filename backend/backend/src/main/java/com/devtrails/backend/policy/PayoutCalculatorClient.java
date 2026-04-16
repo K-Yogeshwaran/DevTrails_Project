@@ -1,7 +1,8 @@
 package com.devtrails.backend.policy;
 
 import com.devtrails.backend.worker.Worker;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -12,8 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@Slf4j
 public class PayoutCalculatorClient {
+
+    private static final Logger log = LoggerFactory.getLogger(PayoutCalculatorClient.class);
 
     @Value("${ml.premium.url}")
     private String mlUrl;

@@ -1,8 +1,8 @@
 package com.devtrails.backend.policy;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +14,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/policies")
-@RequiredArgsConstructor
-@Slf4j
 @CrossOrigin(origins = "*")
 public class PolicyController {
 
+    private static final Logger log = LoggerFactory.getLogger(PolicyController.class);
+
     private final PolicyService policyService;
+
+    public PolicyController(PolicyService policyService) {
+        this.policyService = policyService;
+    }
 
     @PostMapping
     public ResponseEntity<PolicyDTO.PolicyResponse> createPolicy(

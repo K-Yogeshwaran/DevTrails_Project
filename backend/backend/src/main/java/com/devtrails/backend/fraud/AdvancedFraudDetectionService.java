@@ -3,23 +3,35 @@ package com.devtrails.backend.fraud;
 import com.devtrails.backend.claims.Claim;
 import com.devtrails.backend.worker.Worker;
 import com.devtrails.backend.worker.WorkerRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AdvancedFraudDetectionService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdvancedFraudDetectionService.class);
 
     private final GPSValidationService gpsValidationService;
     private final WeatherValidationService weatherValidationService;
     private final DeliveryRouteAnalysisService routeAnalysisService;
     private final FraudDetectionLogRepository fraudLogRepository;
     private final WorkerRepository workerRepository;
+
+    public AdvancedFraudDetectionService(GPSValidationService gpsValidationService,
+                                         WeatherValidationService weatherValidationService,
+                                         DeliveryRouteAnalysisService routeAnalysisService,
+                                         FraudDetectionLogRepository fraudLogRepository,
+                                         WorkerRepository workerRepository) {
+        this.gpsValidationService = gpsValidationService;
+        this.weatherValidationService = weatherValidationService;
+        this.routeAnalysisService = routeAnalysisService;
+        this.fraudLogRepository = fraudLogRepository;
+        this.workerRepository = workerRepository;
+    }
 
     // Advanced fraud detection thresholds
     private static final double ADVANCED_FRAUD_THRESHOLD = 0.65;
@@ -192,7 +204,7 @@ public class AdvancedFraudDetectionService {
             // Check if intervals are very similar (automation indicator)
             double avgInterval = java.util.Arrays.stream(intervals).average().orElse(0.0);
             double variance = java.util.Arrays.stream(intervals)
-                .map(interval -> Math.pow(interval - avgInterval, 2))
+                .mapToDouble(interval -> Math.pow((double) interval - avgInterval, 2))
                 .average()
                 .orElse(0.0);
 

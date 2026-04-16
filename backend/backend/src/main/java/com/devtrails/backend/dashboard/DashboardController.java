@@ -1,8 +1,9 @@
 package com.devtrails.backend.dashboard;
 
 import com.devtrails.backend.config.ApiException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,18 +11,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/dashboard")
-@RequiredArgsConstructor
-@Slf4j
 @CrossOrigin(origins = "*")
 public class DashboardController {
 
+    private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
+
     private final DashboardService dashboardService;
+
+    public DashboardController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
 
     // Worker Dashboard Endpoints
     
@@ -279,22 +285,22 @@ public class DashboardController {
 
         public static WorkerDashboardResponse from(WorkerDashboardData data) {
             WorkerDashboardResponse response = new WorkerDashboardResponse();
-            response.workerId = data.getWorkerId();
-            response.workerName = data.getWorkerName();
-            response.zoneId = data.getZoneId();
-            response.persona = data.getPersona();
-            response.totalEarningsProtected = data.getTotalEarningsProtected();
-            response.totalClaims = data.getTotalClaims();
-            response.approvedClaims = data.getApprovedClaims();
-            response.rejectedClaims = data.getRejectedClaims();
-            response.totalPayoutsReceived = data.getTotalPayoutsReceived();
+            response.workerId = data.workerId();
+            response.workerName = data.workerName();
+            response.zoneId = data.zoneId();
+            response.persona = data.persona();
+            response.totalEarningsProtected = data.totalEarningsProtected();
+            response.totalClaims = data.totalClaims();
+            response.approvedClaims = data.approvedClaims();
+            response.rejectedClaims = data.rejectedClaims();
+            response.totalPayoutsReceived = data.totalPayoutsReceived();
             response.claimSuccessRate = data.getClaimSuccessRate();
             response.coveragePercentage = data.getCoveragePercentage();
-            response.dailyEarnings = data.getDailyEarnings();
-            response.activeHours = data.getActiveHours();
-            response.experienceMonths = data.getExperienceMonths();
-            response.daysPerWeek = data.getDaysPerWeek();
-            response.lastUpdated = data.getLastUpdated();
+            response.dailyEarnings = data.dailyEarnings();
+            response.activeHours = data.activeHours();
+            response.experienceMonths = data.experienceMonths();
+            response.daysPerWeek = data.daysPerWeek();
+            response.lastUpdated = data.lastUpdated();
             return response;
         }
 
@@ -347,16 +353,15 @@ public class DashboardController {
 
         public static WeeklyCoverageResponse from(WeeklyCoverageData data) {
             WeeklyCoverageResponse response = new WeeklyCoverageResponse();
-            response.workerId = data.getWorkerId();
-            response.workerName = data.getWorkerName();
-            response.weekStart = data.getWeekStart().toString();
-            response.weeklyClaims = data.getWeeklyClaims();
-            response.totalDisruptedHours = data.getTotalDisruptedHours();
-            response.weeklyPayouts = data.getWeeklyPayouts();
-            response.weeklyActiveHours = data.getWeeklyActiveHours();
+            response.workerId = data.workerId();
+            response.workerName = data.workerName();
+            response.weekStart = data.weekStart().toString();
+            response.weeklyClaims = data.weeklyClaims();
+            response.totalDisruptedHours = data.totalDisruptedHours();
+            response.weeklyPayouts = data.weeklyPayouts();
+            response.weeklyActiveHours = data.weeklyActiveHours();
             response.coverageEfficiency = data.getCoverageEfficiency();
-            response.weeklyProtectionValue = data.getWeeklyProtectionValue();
-            response.lastUpdated = data.getLastUpdated();
+            response.lastUpdated = data.lastUpdated();
             return response;
         }
 
@@ -421,20 +426,20 @@ public class DashboardController {
 
         public static InsurerDashboardResponse from(InsurerDashboardData data) {
             InsurerDashboardResponse response = new InsurerDashboardResponse();
-            response.totalClaims = data.getTotalClaims();
-            response.totalClaimValue = data.getTotalClaimValue();
-            response.totalPayoutsProcessed = data.getTotalPayoutsProcessed();
-            response.approvedClaims = data.getApprovedClaims();
-            response.rejectedClaims = data.getRejectedClaims();
-            response.flaggedClaims = data.getFlaggedClaims();
-            response.activeWorkers = data.getActiveWorkers();
-            response.activeZones = data.getActiveZones();
-            response.avgDailyEarnings = data.getAvgDailyEarnings();
+            response.totalClaims = data.totalClaims();
+            response.totalClaimValue = data.totalClaimValue();
+            response.totalPayoutsProcessed = data.totalPayoutsProcessed();
+            response.approvedClaims = data.approvedClaims();
+            response.rejectedClaims = data.rejectedClaims();
+            response.flaggedClaims = data.flaggedClaims();
+            response.activeWorkers = data.activeWorkers();
+            response.activeZones = data.activeZones();
+            response.avgDailyEarnings = data.avgDailyEarnings();
             response.lossRatio = data.getLossRatio();
             response.approvalRate = data.getApprovalRate();
             response.rejectionRate = data.getRejectionRate();
             response.flaggedRate = data.getFlaggedRate();
-            response.lastUpdated = data.getLastUpdated();
+            response.lastUpdated = data.lastUpdated();
             return response;
         }
 
@@ -482,15 +487,15 @@ public class DashboardController {
 
         public static LossRatioResponse from(LossRatioData data) {
             LossRatioResponse response = new LossRatioResponse();
-            response.triggerType = data.getTriggerType();
-            response.totalClaims = data.getTotalClaims();
-            response.totalPaid = data.getTotalPaid();
-            response.rejectedClaims = data.getRejectedClaims();
-            response.flaggedClaims = data.getFlaggedClaims();
-            response.avgDisruptedHours = data.getAvgDisruptedHours();
+            response.triggerType = data.triggerType();
+            response.totalClaims = data.totalClaims();
+            response.totalPaid = data.totalPaid();
+            response.rejectedClaims = data.rejectedClaims();
+            response.flaggedClaims = data.flaggedClaims();
+            response.avgDisruptedHours = data.avgDisruptedHours();
             response.lossRatio = data.getLossRatio();
             response.averageClaimValue = data.getAverageClaimValue();
-            response.lastUpdated = data.getLastUpdated();
+            response.lastUpdated = data.lastUpdated();
             return response;
         }
 
@@ -524,7 +529,7 @@ public class DashboardController {
             response.analytics = data.stream()
                     .map(PredictiveAnalyticsItem::from)
                     .toList();
-            response.lastUpdated = data.isEmpty() ? null : data.get(0).getLastUpdated();
+            response.lastUpdated = data.isEmpty() ? null : data.get(0).lastUpdated();
             return response;
         }
 
@@ -548,15 +553,15 @@ public class DashboardController {
 
         public static PredictiveAnalyticsItem from(PredictiveAnalytics data) {
             PredictiveAnalyticsItem item = new PredictiveAnalyticsItem();
-            item.triggerType = data.getTriggerType();
-            item.claimCount = data.getClaimCount();
-            item.avgDisruptedHours = data.getAvgDisruptedHours();
-            item.totalPayout = data.getTotalPayout();
-            item.dayOfWeek = data.getDayOfWeek();
-            item.hourOfDay = data.getHourOfDay();
-            item.riskScore = data.getRiskScore();
-            item.prediction = data.getPrediction();
-            item.riskLevel = data.getPrediction(); // Using prediction as risk level
+            item.triggerType = data.triggerType();
+            item.claimCount = data.claimCount();
+            item.avgDisruptedHours = data.avgDisruptedHours();
+            item.totalPayout = data.totalPayout();
+            item.dayOfWeek = data.dayOfWeek();
+            item.hourOfDay = data.hourOfDay();
+            item.riskScore = data.riskScore();
+            item.prediction = data.prediction();
+            item.riskLevel = data.prediction(); // Using prediction as risk level
             return item;
         }
 
@@ -593,14 +598,14 @@ public class DashboardController {
 
         public static WeeklyPredictionResponse from(WeeklyPrediction data) {
             WeeklyPredictionResponse response = new WeeklyPredictionResponse();
-            response.weekStartDate = data.getWeekStartDate();
-            response.weekEndDate = data.getWeekEndDate();
-            response.totalPredictedClaims = data.getTotalPredictedClaims();
-            response.predictedPayoutAmount = data.getPredictedPayoutAmount();
-            response.primaryRiskFactor = data.getPrimaryRiskFactor();
-            response.secondaryRiskFactor = data.getSecondaryRiskFactor();
+            response.weekStartDate = data.weekStartDate();
+            response.weekEndDate = data.weekEndDate();
+            response.totalPredictedClaims = data.totalPredictedClaims();
+            response.predictedPayoutAmount = data.predictedPayoutAmount();
+            response.primaryRiskFactor = data.primaryRiskFactor();
+            response.secondaryRiskFactor = data.secondaryRiskFactor();
             response.confidenceLevel = data.getConfidenceLevel();
-            response.generatedAt = data.getGeneratedAt();
+            response.generatedAt = data.generatedAt();
             return response;
         }
 
@@ -635,14 +640,14 @@ public class DashboardController {
 
         public static ZoneAnalyticsResponse from(ZoneAnalyticsData data) {
             ZoneAnalyticsResponse response = new ZoneAnalyticsResponse();
-            response.zoneId = data.getZoneId();
-            response.activeWorkers = data.getActiveWorkers();
-            response.totalClaims = data.getTotalClaims();
-            response.totalPayouts = data.getTotalPayouts();
-            response.avgDailyEarnings = data.getAvgDailyEarnings();
+            response.zoneId = data.zoneId();
+            response.activeWorkers = data.activeWorkers();
+            response.totalClaims = data.totalClaims();
+            response.totalPayouts = data.totalPayouts();
+            response.avgDailyEarnings = data.avgDailyEarnings();
             response.averageClaimsPerWorker = data.getAverageClaimsPerWorker();
             response.zoneRiskScore = data.getZoneRiskScore();
-            response.lastUpdated = data.getLastUpdated();
+            response.lastUpdated = data.lastUpdated();
             return response;
         }
 
@@ -678,15 +683,15 @@ public class DashboardController {
 
         public static WeatherCorrelationResponse from(WeatherDisruptionCorrelation data) {
             WeatherCorrelationResponse response = new WeatherCorrelationResponse();
-            response.triggerType = data.getTriggerType();
-            response.dayOfWeek = data.getDayOfWeek();
-            response.hourOfDay = data.getHourOfDay();
-            response.claimCount = data.getClaimCount();
-            response.avgDisruptedHours = data.getAvgDisruptedHours();
-            response.totalPayout = data.getTotalPayout();
+            response.triggerType = data.triggerType();
+            response.dayOfWeek = data.dayOfWeek();
+            response.hourOfDay = data.hourOfDay();
+            response.claimCount = data.claimCount();
+            response.avgDisruptedHours = data.avgDisruptedHours();
+            response.totalPayout = data.totalPayout();
             response.timePattern = data.getTimePattern();
             response.dayPattern = data.getDayPattern();
-            response.lastUpdated = data.getLastUpdated();
+            response.lastUpdated = data.lastUpdated();
             return response;
         }
 
@@ -731,22 +736,22 @@ public class DashboardController {
 
         public static RiskAssessmentResponse from(RiskAssessmentData data) {
             RiskAssessmentResponse response = new RiskAssessmentResponse();
-            response.workerId = data.getWorkerId();
-            response.workerName = data.getWorkerName();
-            response.zoneId = data.getZoneId();
-            response.persona = data.getPersona();
-            response.experienceMonths = data.getExperienceMonths();
-            response.dailyEarnings = data.getDailyEarnings();
-            response.totalClaims = data.getTotalClaims();
-            response.totalPaid = data.getTotalPaid();
-            response.rejectedClaims = data.getRejectedClaims();
-            response.flaggedClaims = data.getFlaggedClaims();
-            response.avgDisruptedHours = data.getAvgDisruptedHours();
-            response.rejectionRate = data.getRejectionRate();
+            response.workerId = data.workerId();
+            response.workerName = data.workerName();
+            response.zoneId = data.zoneId();
+            response.persona = data.persona();
+            response.experienceMonths = data.experienceMonths();
+            response.dailyEarnings = data.dailyEarnings();
+            response.totalClaims = data.totalClaims();
+            response.totalPaid = data.totalPaid();
+            response.rejectedClaims = data.rejectedClaims();
+            response.flaggedClaims = data.flaggedClaims();
+            response.avgDisruptedHours = data.avgDisruptedHours();
+            response.rejectionRate = data.rejectionRate();
             response.overallRiskScore = data.calculateOverallRiskScore();
             response.riskCategory = data.getRiskCategory();
             response.riskFactors = data.getRiskFactors();
-            response.lastUpdated = data.getLastUpdated();
+            response.lastUpdated = data.lastUpdated();
             return response;
         }
 

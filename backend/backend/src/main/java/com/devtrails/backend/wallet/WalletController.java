@@ -1,6 +1,5 @@
 package com.devtrails.backend.wallet;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,11 +8,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/wallet")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class WalletController {
 
     private final WalletService walletService;
+
+    public WalletController(WalletService walletService) {
+        this.walletService = walletService;
+    }
 
     // GET /api/wallet/{workerId}
     @GetMapping("/{workerId}")

@@ -1,17 +1,11 @@
 package com.devtrails.backend.payout;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payouts")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Payout {
 
     @Id
@@ -19,7 +13,6 @@ public class Payout {
     private Long id;
 
     // Unique payout ID — format: PYT-WORKID-TIMESTAMP-SEQ
-    // e.g. PYT-GS3F4A8B-1710758400-001
     @Column(name = "payout_id", unique = true, nullable = false, length = 60)
     private String payoutId;
 
@@ -77,6 +70,31 @@ public class Payout {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public Payout() {}
+
+    public Payout(Long id, String payoutId, String claimId, String workerId, String paymentMethod, String paymentGatewayId, BigDecimal amount, String currency, String status, String failureReason, String upiId, String accountNumber, String ifscCode, String beneficiaryName, String gatewayResponse, Boolean webhookReceived, LocalDateTime processedAt, LocalDateTime completedAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.payoutId = payoutId;
+        this.claimId = claimId;
+        this.workerId = workerId;
+        this.paymentMethod = paymentMethod;
+        this.paymentGatewayId = paymentGatewayId;
+        this.amount = amount;
+        this.currency = currency;
+        this.status = status;
+        this.failureReason = failureReason;
+        this.upiId = upiId;
+        this.accountNumber = accountNumber;
+        this.ifscCode = ifscCode;
+        this.beneficiaryName = beneficiaryName;
+        this.gatewayResponse = gatewayResponse;
+        this.webhookReceived = webhookReceived;
+        this.processedAt = processedAt;
+        this.completedAt = completedAt;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -128,4 +146,46 @@ public class Payout {
     public boolean isProcessing() {
         return "PROCESSING".equals(this.status);
     }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getPayoutId() { return payoutId; }
+    public void setPayoutId(String payoutId) { this.payoutId = payoutId; }
+    public String getClaimId() { return claimId; }
+    public void setClaimId(String claimId) { this.claimId = claimId; }
+    public String getWorkerId() { return workerId; }
+    public void setWorkerId(String workerId) { this.workerId = workerId; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getPaymentGatewayId() { return paymentGatewayId; }
+    public void setPaymentGatewayId(String paymentGatewayId) { this.paymentGatewayId = paymentGatewayId; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getFailureReason() { return failureReason; }
+    public void setFailureReason(String failureReason) { this.failureReason = failureReason; }
+    public String getUpiId() { return upiId; }
+    public void setUpiId(String upiId) { this.upiId = upiId; }
+    public String getAccountNumber() { return accountNumber; }
+    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
+    public String getIfscCode() { return ifscCode; }
+    public void setIfscCode(String ifscCode) { this.ifscCode = ifscCode; }
+    public String getBeneficiaryName() { return beneficiaryName; }
+    public void setBeneficiaryName(String beneficiaryName) { this.beneficiaryName = beneficiaryName; }
+    public String getGatewayResponse() { return gatewayResponse; }
+    public void setGatewayResponse(String gatewayResponse) { this.gatewayResponse = gatewayResponse; }
+    public Boolean getWebhookReceived() { return webhookReceived; }
+    public void setWebhookReceived(Boolean webhookReceived) { this.webhookReceived = webhookReceived; }
+    public LocalDateTime getProcessedAt() { return processedAt; }
+    public void setProcessedAt(LocalDateTime processedAt) { this.processedAt = processedAt; }
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

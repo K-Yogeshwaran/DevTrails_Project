@@ -5,8 +5,8 @@ import com.devtrails.backend.config.ApiException;
 import com.devtrails.backend.wallet.WalletService;
 import com.devtrails.backend.worker.Worker;
 import com.devtrails.backend.worker.WorkerRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +19,21 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class PolicyService {
+
+    private static final Logger log = LoggerFactory.getLogger(PolicyService.class);
 
     private final PolicyRepository policyRepository;
     private final WorkerRepository workerRepository;
     private final WalletService walletService;
+
+    public PolicyService(PolicyRepository policyRepository,
+                         WorkerRepository workerRepository,
+                         WalletService walletService) {
+        this.policyRepository = policyRepository;
+        this.workerRepository = workerRepository;
+        this.walletService = walletService;
+    }
 
     // Fixed tier premiums — worker sees exactly this price, no ML involved
     private static final Map<String, BigDecimal> TIER_PREMIUMS = Map.of(
@@ -45,9 +53,9 @@ public class PolicyService {
     public PolicyDTO.PolicyResponse createPolicy(PolicyDTO.CreateRequest request) {
 
         // Step 1: Check worker exists
-        Worker worker = workerRepository.findByWorkerId(request.getWorkerId())
+        Worker worker = workerRepository.findByWorkerId(request.workerId())
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
-                        "Worker not found with ID: " + request.getWorkerId()));
+                        "Worker not found with ID: " + request.workerId()));
 
         // Step 2: Calculate week boundaries
         // Insurance week runs Monday to Sunday
@@ -56,13 +64,13 @@ public class PolicyService {
         LocalDate weekEnd   = today.with(DayOfWeek.SUNDAY);
 
         // Step 3: Check if worker already has a policy this week
-        if (policyRepository.existsActivePolicyForWeek(request.getWorkerId(), weekStart)) {
+        if (policyRepository.existsActivePolicyForWeek(request.workerId(), weekStart)) {
             throw new ApiException(HttpStatus.CONFLICT,
                     "You already have an active policy for this week. Policies renew every Monday.");
         }
 
         // Step 4: Validate tier
-        String tier = request.getTier().toLowerCase();
+        String tier = request.tier().toLowerCase();
         if (!COVERAGE_CAPS.containsKey(tier)) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Invalid tier '" + tier + "'. Must be one of: basic, standard, premium.");
@@ -72,7 +80,7 @@ public class PolicyService {
         BigDecimal weeklyPremium = TIER_PREMIUMS.get(tier);
 
         // Step 5b: Check wallet balance and debit premium
-        if (!walletService.hasSufficientBalance(request.getWorkerId(), weeklyPremium)) {
+        if (!walletService.hasSufficientBalance(request.workerId(), weeklyPremium)) {
             throw new ApiException(HttpStatus.PAYMENT_REQUIRED,
                     "Insufficient wallet balance to pay premium of ₹" + weeklyPremium
                     + ". Please top up your wallet.");
@@ -91,29 +99,29 @@ public class PolicyService {
         // Step 8: Build and save the policy
         Policy policy = new Policy();
         policy.setPolicyNumber(policyNumber);
-        policy.setWorkerId(request.getWorkerId());
+        policy.setWorkerId(request.workerId());
         policy.setTier(tier);
         policy.setWeeklyPremium(weeklyPremium);
         policy.setCoverageCap(coverageCap);
         policy.setCoverageUsed(BigDecimal.ZERO);
-        policy.setSeason(request.getSeason());
+        policy.setSeason(request.season());
         policy.setStatus("active");
         policy.setWeekStart(weekStart);
         policy.setWeekEnd(weekEnd);
 
         policyRepository.save(policy);
         log.info("Policy created: {} for worker {} | Tier: {} | Premium: ₹{}",
-                policyNumber, request.getWorkerId(), tier, weeklyPremium);
+                policyNumber, request.workerId(), tier, weeklyPremium);
 
         // Debit premium from wallet
         walletService.debit(
-                request.getWorkerId(),
+                request.workerId(),
                 weeklyPremium,
                 "Weekly premium — " + tier + " plan (₹" + weeklyPremium + "/week)",
                 policyNumber,
                 "premium_debit"
         );
-        log.info("Premium ₹{} debited from wallet for worker {}", weeklyPremium, request.getWorkerId());
+        log.info("Premium ₹{} debited from wallet for worker {}", weeklyPremium, request.workerId());
 
         return buildResponse(policy, "Policy created successfully. Coverage active until " + weekEnd);
     }

@@ -2,8 +2,8 @@ package com.devtrails.backend.fraud;
 
 import com.devtrails.backend.claims.Claim;
 import com.devtrails.backend.worker.Worker;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class DeliveryRouteAnalysisService {
+
+    private static final Logger log = LoggerFactory.getLogger(DeliveryRouteAnalysisService.class);
 
     private static final double MAX_REASONABLE_DELIVERY_RADIUS_KM = 15.0; // Maximum delivery radius
     private static final double MIN_REASONABLE_DELIVERY_SPEED_KMH = 5.0;  // Minimum reasonable speed

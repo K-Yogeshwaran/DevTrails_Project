@@ -1,28 +1,38 @@
 package com.devtrails.backend.dashboard;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class InsurerDashboardData {
-    private Long totalClaims;
-    private BigDecimal totalClaimValue;
-    private BigDecimal totalPayoutsProcessed;
-    private Long approvedClaims;
-    private Long rejectedClaims;
-    private Long flaggedClaims;
-    private Integer activeWorkers;
-    private Integer activeZones;
-    private BigDecimal avgDailyEarnings;
-    private LocalDateTime lastUpdated;
-    
-    // Calculated fields
+public record InsurerDashboardData(
+    Long totalClaims,
+    BigDecimal totalClaimValue,
+    BigDecimal totalPayoutsProcessed,
+    Long approvedClaims,
+    Long rejectedClaims,
+    Long flaggedClaims,
+    Integer activeWorkers,
+    Integer activeZones,
+    BigDecimal avgDailyEarnings,
+    LocalDateTime lastUpdated
+) {
+    // Constructor for JPQL query
+    public InsurerDashboardData(Object totalClaims, Object totalClaimValue, Object totalPayoutsProcessed,
+                              Object approvedClaims, Object rejectedClaims, Object flaggedClaims,
+                              Object activeWorkers, Object activeZones, Object avgDailyEarnings) {
+        this(
+            totalClaims != null ? ((Number) totalClaims).longValue() : 0L,
+            totalClaimValue != null ? new BigDecimal(totalClaimValue.toString()) : BigDecimal.ZERO,
+            totalPayoutsProcessed != null ? new BigDecimal(totalPayoutsProcessed.toString()) : BigDecimal.ZERO,
+            approvedClaims != null ? ((Number) approvedClaims).longValue() : 0L,
+            rejectedClaims != null ? ((Number) rejectedClaims).longValue() : 0L,
+            flaggedClaims != null ? ((Number) flaggedClaims).longValue() : 0L,
+            activeWorkers != null ? ((Number) activeWorkers).intValue() : 0,
+            activeZones != null ? ((Number) activeZones).intValue() : 0,
+            avgDailyEarnings != null ? new BigDecimal(avgDailyEarnings.toString()) : BigDecimal.ZERO,
+            LocalDateTime.now()
+        );
+    }
+
     public BigDecimal getLossRatio() {
         if (totalClaimValue == null || totalClaimValue.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
         return totalPayoutsProcessed

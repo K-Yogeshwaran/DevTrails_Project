@@ -1,6 +1,7 @@
 package com.devtrails.backend.shared;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -11,8 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Slf4j
 public class TriggerEngineClient {
+
+    private static final Logger log = LoggerFactory.getLogger(TriggerEngineClient.class);
 
     @Value("${trigger.engine.url}")
     private String triggerEngineUrl;

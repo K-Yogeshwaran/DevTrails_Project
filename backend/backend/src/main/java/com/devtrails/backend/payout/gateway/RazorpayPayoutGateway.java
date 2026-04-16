@@ -4,7 +4,8 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Transfer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-@Slf4j
 public class RazorpayPayoutGateway implements PaymentGateway {
+
+    private static final Logger log = LoggerFactory.getLogger(RazorpayPayoutGateway.class);
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;

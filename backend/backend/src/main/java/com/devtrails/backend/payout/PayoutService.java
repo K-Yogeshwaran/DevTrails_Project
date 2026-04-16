@@ -3,11 +3,11 @@ package com.devtrails.backend.payout;
 import com.devtrails.backend.claims.Claim;
 import com.devtrails.backend.payout.gateway.PaymentGateway;
 import com.devtrails.backend.payout.gateway.RazorpayPayoutGateway;
-import com.devtrails.backend.payout.gateway.STRIPEPayoutGateway;
+import com.devtrails.backend.payout.gateway.StripePayoutGateway;
 import com.devtrails.backend.payout.gateway.UPISimulatorGateway;
 import com.devtrails.backend.worker.Worker;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,14 +21,24 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class PayoutService {
+
+    private static final Logger log = LoggerFactory.getLogger(PayoutService.class);
 
     private final PayoutRepository payoutRepository;
     private final RazorpayPayoutGateway razorpayGateway;
-    private final STRIPEPayoutGateway stripeGateway;
+    private final StripePayoutGateway stripeGateway;
     private final UPISimulatorGateway upiSimulatorGateway;
+    
+    public PayoutService(PayoutRepository payoutRepository,
+                         RazorpayPayoutGateway razorpayGateway,
+                         StripePayoutGateway stripeGateway,
+                         UPISimulatorGateway upiSimulatorGateway) {
+        this.payoutRepository = payoutRepository;
+        this.razorpayGateway = razorpayGateway;
+        this.stripeGateway = stripeGateway;
+        this.upiSimulatorGateway = upiSimulatorGateway;
+    }
     
     @Value("${payout.min.amount}")
     private BigDecimal minPayoutAmount;

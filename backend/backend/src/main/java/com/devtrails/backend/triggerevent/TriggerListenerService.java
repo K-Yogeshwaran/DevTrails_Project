@@ -12,8 +12,8 @@ import com.devtrails.backend.policy.PolicyService;
 import com.devtrails.backend.policy.PolicyDTO;
 import com.devtrails.backend.worker.Worker;
 import com.devtrails.backend.worker.WorkerRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +25,9 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class TriggerListenerService {
+
+    private static final Logger log = LoggerFactory.getLogger(TriggerListenerService.class);
 
     private final TriggerEventRepository       triggerEventRepo;
     private final WorkerRepository             workerRepo;
@@ -37,6 +37,20 @@ public class TriggerListenerService {
     private final ClaimProcessingLogRepository logRepo;
     private final PayoutCalculatorClient       payoutClient;
     private final WalletService                walletService;
+
+    public TriggerListenerService(TriggerEventRepository triggerEventRepo, WorkerRepository workerRepo,
+                                  PolicyService policyService, PolicyRepository policyRepo,
+                                  ClaimRepository claimRepo, ClaimProcessingLogRepository logRepo,
+                                  PayoutCalculatorClient payoutClient, WalletService walletService) {
+        this.triggerEventRepo = triggerEventRepo;
+        this.workerRepo = workerRepo;
+        this.policyService = policyService;
+        this.policyRepo = policyRepo;
+        this.claimRepo = claimRepo;
+        this.logRepo = logRepo;
+        this.payoutClient = payoutClient;
+        this.walletService = walletService;
+    }
 
     private static final double FRAUD_THRESHOLD = 0.70;
 
@@ -109,8 +123,8 @@ public class TriggerListenerService {
             return;
         }
         saveLog(claimId, "policy_check", "done",
-                "Active policy: " + coverage.getPolicyNumber()
-                + " | Remaining: Rs." + coverage.getCoverageRemaining());
+                "Active policy: " + coverage.policyNumber()
+                + " | Remaining: Rs." + coverage.coverageRemaining());
 
         Worker worker = workerRepo.findByWorkerId(workerId).orElse(null);
         if (worker == null) {
@@ -143,13 +157,13 @@ public class TriggerListenerService {
         // Stage 5 - Coverage cap
         saveLog(claimId, "coverage_cap", "processing", "Checking against weekly coverage cap...");
         sleep(1200);
-        if (payoutAmount.compareTo(coverage.getCoverageRemaining()) > 0) {
-            payoutAmount = coverage.getCoverageRemaining();
+        if (payoutAmount.compareTo(coverage.coverageRemaining()) > 0) {
+            payoutAmount = coverage.coverageRemaining();
             saveLog(claimId, "coverage_cap", "done",
                     "Payout capped at remaining coverage: Rs." + payoutAmount);
         } else {
             saveLog(claimId, "coverage_cap", "done",
-                    "Rs." + payoutAmount + " within Rs." + coverage.getCoverageRemaining()
+                    "Rs." + payoutAmount + " within Rs." + coverage.coverageRemaining()
                     + " cap - full amount approved");
         }
         sleep(1000);
@@ -173,7 +187,7 @@ public class TriggerListenerService {
         claim.setClaimId(claimId);
         claim.setWorkerId(workerId);
         claim.setEventId(event.getEventId());
-        claim.setPolicyNumber(coverage.getPolicyNumber());
+        claim.setPolicyNumber(coverage.policyNumber());
         claim.setTriggerType(event.getTriggerType());
         claim.setTriggerValue(event.getTriggerValue() != null ? event.getTriggerValue() : BigDecimal.ZERO);
         claim.setZoneId(event.getZoneId());
@@ -186,7 +200,7 @@ public class TriggerListenerService {
         claimRepo.save(claim);
 
         if ("approved".equals(claimStatus)) {
-            policyService.deductCoverage(coverage.getPolicyNumber(), payoutAmount);
+            policyService.deductCoverage(coverage.policyNumber(), payoutAmount);
             // Credit payout to worker wallet
             walletService.credit(
                     workerId,

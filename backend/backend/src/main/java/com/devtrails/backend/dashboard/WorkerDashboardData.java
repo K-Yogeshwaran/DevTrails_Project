@@ -1,32 +1,47 @@
 package com.devtrails.backend.dashboard;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class WorkerDashboardData {
-    private String workerId;
-    private String workerName;
-    private String zoneId;
-    private String persona;
-    private BigDecimal totalEarningsProtected;
-    private Long totalClaims;
-    private Long approvedClaims;
-    private Long rejectedClaims;
-    private BigDecimal totalPayoutsReceived;
-    private BigDecimal dailyEarnings;
-    private Integer activeHours;
-    private Integer experienceMonths;
-    private Integer daysPerWeek;
-    private LocalDateTime lastUpdated;
-    
-    // Calculated fields
+public record WorkerDashboardData(
+    String workerId,
+    String workerName,
+    String zoneId,
+    String persona,
+    BigDecimal totalEarningsProtected,
+    Long totalClaims,
+    Long approvedClaims,
+    Long rejectedClaims,
+    BigDecimal totalPayoutsReceived,
+    BigDecimal dailyEarnings,
+    Integer activeHours,
+    Integer experienceMonths,
+    Integer daysPerWeek,
+    LocalDateTime lastUpdated
+) {
+    // Constructor for JPQL query (handles Object/Number conversion)
+    public WorkerDashboardData(String workerId, String workerName, String zoneId, String persona,
+                             Object totalEarningsProtected, Object totalClaims, Object approvedClaims,
+                             Object rejectedClaims, Object totalPayoutsReceived, Object dailyEarnings,
+                             Object activeHours, Object experienceMonths, Object daysPerWeek) {
+        this(
+            workerId,
+            workerName,
+            zoneId,
+            persona,
+            totalEarningsProtected != null ? new BigDecimal(totalEarningsProtected.toString()) : BigDecimal.ZERO,
+            totalClaims != null ? ((Number) totalClaims).longValue() : 0L,
+            approvedClaims != null ? ((Number) approvedClaims).longValue() : 0L,
+            rejectedClaims != null ? ((Number) rejectedClaims).longValue() : 0L,
+            totalPayoutsReceived != null ? new BigDecimal(totalPayoutsReceived.toString()) : BigDecimal.ZERO,
+            dailyEarnings != null ? new BigDecimal(dailyEarnings.toString()) : BigDecimal.ZERO,
+            activeHours != null ? ((Number) activeHours).intValue() : 0,
+            experienceMonths != null ? ((Number) experienceMonths).intValue() : 0,
+            daysPerWeek != null ? ((Number) daysPerWeek).intValue() : 0,
+            LocalDateTime.now()
+        );
+    }
+
     public BigDecimal getCoveragePercentage() {
         if (totalClaims == null || totalClaims == 0) return BigDecimal.ZERO;
         return BigDecimal.valueOf(approvedClaims)

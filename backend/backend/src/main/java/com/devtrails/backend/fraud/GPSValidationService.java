@@ -2,8 +2,8 @@ package com.devtrails.backend.fraud;
 
 import com.devtrails.backend.claims.Claim;
 import com.devtrails.backend.worker.Worker;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,9 +13,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class GPSValidationService {
+
+    private static final Logger log = LoggerFactory.getLogger(GPSValidationService.class);
 
     // Zone boundaries (simplified for demo - in production, use proper geofencing)
     private static final double[][] ZONE_BOUNDARIES = {

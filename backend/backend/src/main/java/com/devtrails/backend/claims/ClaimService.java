@@ -1,8 +1,8 @@
 package com.devtrails.backend.claims;
 
 import com.devtrails.backend.config.ApiException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +12,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class ClaimService {
 
+    private static final Logger log = LoggerFactory.getLogger(ClaimService.class);
+
     private final ClaimRepository claimRepository;
+
+    public ClaimService(ClaimRepository claimRepository) {
+        this.claimRepository = claimRepository;
+    }
 
     public List<ClaimDTO.ClaimSummary> getWorkerClaims(String workerId) {
         return claimRepository

@@ -6,8 +6,8 @@ import com.devtrails.backend.policy.PolicyService;
 import com.devtrails.backend.policy.PolicyDTO;
 import com.devtrails.backend.worker.Worker;
 import com.devtrails.backend.worker.WorkerRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +20,24 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class WeeklyPremiumScheduler {
+
+    private static final Logger log = LoggerFactory.getLogger(WeeklyPremiumScheduler.class);
 
     private final PolicyRepository  policyRepo;
     private final PolicyService     policyService;
     private final WorkerRepository  workerRepo;
     private final WalletService     walletService;
+
+    public WeeklyPremiumScheduler(PolicyRepository policyRepo,
+                                  PolicyService policyService,
+                                  WorkerRepository workerRepo,
+                                  WalletService walletService) {
+        this.policyRepo = policyRepo;
+        this.policyService = policyService;
+        this.workerRepo = workerRepo;
+        this.walletService = walletService;
+    }
 
     private static final Map<String, BigDecimal> TIER_PREMIUMS = Map.of(
             "basic",    new BigDecimal("49"),

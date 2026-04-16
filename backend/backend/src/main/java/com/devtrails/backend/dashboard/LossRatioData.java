@@ -1,25 +1,31 @@
 package com.devtrails.backend.dashboard;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class LossRatioData {
-    private String triggerType;
-    private Long totalClaims;
-    private BigDecimal totalPaid;
-    private Long rejectedClaims;
-    private Long flaggedClaims;
-    private Double avgDisruptedHours;
-    private LocalDateTime lastUpdated;
-    
-    // Calculated fields
+public record LossRatioData(
+    String triggerType,
+    Long totalClaims,
+    BigDecimal totalPaid,
+    Long rejectedClaims,
+    Long flaggedClaims,
+    Double avgDisruptedHours,
+    LocalDateTime lastUpdated
+) {
+    // Constructor for JPQL query
+    public LossRatioData(String triggerType, Object totalClaims, Object totalPaid,
+                        Object rejectedClaims, Object flaggedClaims, Object avgDisruptedHours) {
+        this(
+            triggerType,
+            totalClaims != null ? ((Number) totalClaims).longValue() : 0L,
+            totalPaid != null ? new BigDecimal(totalPaid.toString()) : BigDecimal.ZERO,
+            rejectedClaims != null ? ((Number) rejectedClaims).longValue() : 0L,
+            flaggedClaims != null ? ((Number) flaggedClaims).longValue() : 0L,
+            avgDisruptedHours != null ? ((Number) avgDisruptedHours).doubleValue() : 0.0,
+            LocalDateTime.now()
+        );
+    }
+
     public BigDecimal getLossRatio() {
         if (totalClaims == null || totalClaims == 0) return BigDecimal.ZERO;
         BigDecimal totalValue = totalPaid.add(
