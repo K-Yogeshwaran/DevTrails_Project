@@ -34,10 +34,10 @@ public class StripePayoutGateway implements PaymentGateway {
     public PayoutResult initiatePayout(PayoutRequest request) {
         try {
             Stripe.apiKey = stripeSecretKey;
-            
+
             // Create or retrieve connected account for the worker
             String accountId = createConnectedAccount(request);
-            
+
             // Create transfer to connected account
             TransferCreateParams params = TransferCreateParams.builder()
                     .setAmount(request.getAmount().multiply(BigDecimal.valueOf(100)).longValue()) // Convert to cents
@@ -48,13 +48,12 @@ public class StripePayoutGateway implements PaymentGateway {
                             "claim_id", request.getClaimId(),
                             "worker_id", request.getWorkerId(),
                             "reference_id", request.getReferenceId(),
-                            "beneficiary_name", request.getBeneficiaryName()
-                    ))
+                            "beneficiary_name", request.getBeneficiaryName()))
                     .build();
 
             Transfer transfer = Transfer.create(params);
-            
-            log.info("Stripe payout initiated successfully: {} for amount: {}", 
+
+            log.info("Stripe payout initiated successfully: {} for amount: {}",
                     transfer.getId(), request.getAmount());
 
             return PayoutResult.builder()
@@ -91,7 +90,7 @@ public class StripePayoutGateway implements PaymentGateway {
         try {
             Stripe.apiKey = stripeSecretKey;
             Transfer transfer = Transfer.retrieve(transactionId);
-            
+
             return PayoutStatus.builder()
                     .transactionId(transactionId)
                     .status(mapStripeStatus(transfer.getStatus()))
@@ -112,7 +111,8 @@ public class StripePayoutGateway implements PaymentGateway {
     @Override
     public boolean validateWebhookSignature(String payload, String signature) {
         try {
-            // In production, implement actual webhook signature validation using Stripe's Webhook.constructEvent
+            // In production, implement actual webhook signature validation using Stripe's
+            // Webhook.constructEvent
             // For demo, we'll simulate validation
             return payload != null && !payload.isEmpty() && signature != null;
         } catch (Exception e) {
@@ -125,11 +125,13 @@ public class StripePayoutGateway implements PaymentGateway {
     public RefundResult refundPayout(String transactionId, BigDecimal amount, String reason) {
         try {
             Stripe.apiKey = stripeSecretKey;
-            
-            // Note: Stripe transfers can be reversed but not refunded in the traditional sense
-            // This would typically be handled through their support or by creating a reversal
+
+            // Note: Stripe transfers can be reversed but not refunded in the traditional
+            // sense
+            // This would typically be handled through their support or by creating a
+            // reversal
             Transfer transfer = Transfer.retrieve(transactionId);
-            
+
             if ("paid".equals(transfer.getStatus())) {
                 // Create a reversal for the transfer
                 TransferCreateParams reversalParams = TransferCreateParams.builder()
@@ -138,13 +140,12 @@ public class StripePayoutGateway implements PaymentGateway {
                         .setTransferGroup("reversal-" + transfer.getTransferGroup())
                         .putAllMetadata(Map.of(
                                 "original_transfer_id", transactionId,
-                                "reversal_reason", reason
-                        ))
+                                "reversal_reason", reason))
                         .build();
 
                 Transfer reversal = Transfer.create(reversalParams);
-                
-                log.info("Stripe reversal created: {} for original transfer: {}", 
+
+                log.info("Stripe reversal created: {} for original transfer: {}",
                         reversal.getId(), transactionId);
 
                 return RefundResult.builder()
@@ -171,11 +172,11 @@ public class StripePayoutGateway implements PaymentGateway {
 
     private String createConnectedAccount(PayoutRequest request) throws StripeException {
         Stripe.apiKey = stripeSecretKey;
-        
+
         // Check if account already exists for this worker
         // In production, you would store the account ID in your database
         String accountId = "acct_" + request.getWorkerId(); // Simplified for demo
-        
+
         try {
             // Try to retrieve existing account
             Account.retrieve(accountId);
@@ -188,18 +189,17 @@ public class StripePayoutGateway implements PaymentGateway {
                     .setEmail(request.getWorkerId() + "@devtrails.com") // Simplified email
                     .setBusinessType(AccountCreateParams.BusinessType.INDIVIDUAL)
                     .setCapabilities(Map.of(
-                            "transfers", "active"
-                    ))
+                            "transfers", "active"))
                     .putAllIndividual(Map.of(
                             "email", request.getWorkerId() + "@devtrails.com",
                             "first_name", extractFirstName(request.getBeneficiaryName()),
-                            "last_name", extractLastName(request.getBeneficiaryName())
-                    ))
+                            "last_name", extractLastName(request.getBeneficiaryName())))
                     .build();
 
             Account account = Account.create(params);
-            
-            // Create account link for onboarding (in production, you'd send this to the user)
+
+            // Create account link for onboarding (in production, you'd send this to the
+            // user)
             AccountLinkCreateParams linkParams = AccountLinkCreateParams.builder()
                     .setAccount(account.getId())
                     .setRefreshUrl("https://devtrails.com/reauth")
@@ -208,9 +208,9 @@ public class StripePayoutGateway implements PaymentGateway {
                     .build();
 
             AccountLink accountLink = AccountLink.create(linkParams);
-            log.info("Stripe account created: {} with onboarding link: {}", 
+            log.info("Stripe account created: {} with onboarding link: {}",
                     account.getId(), accountLink.getUrl());
-            
+
             return account.getId();
         }
     }

@@ -17,7 +17,7 @@ public class DeliveryRouteAnalysisService {
     private static final Logger log = LoggerFactory.getLogger(DeliveryRouteAnalysisService.class);
 
     private static final double MAX_REASONABLE_DELIVERY_RADIUS_KM = 15.0; // Maximum delivery radius
-    private static final double MIN_REASONABLE_DELIVERY_SPEED_KMH = 5.0;  // Minimum reasonable speed
+    private static final double MIN_REASONABLE_DELIVERY_SPEED_KMH = 5.0; // Minimum reasonable speed
     private static final double MAX_REASONABLE_DELIVERY_SPEED_KMH = 40.0; // Maximum delivery speed in city
 
     public RouteAnalysisResult analyzeDeliveryRoute(Claim claim, Worker worker, List<Claim> recentClaims) {
@@ -68,15 +68,15 @@ public class DeliveryRouteAnalysisService {
             result.setValid(result.getOverallRiskScore() < 0.7);
 
             if (!result.isValid()) {
-                result.setDetails("Route analysis failed: " + 
-                    result.getRiskFactors().stream()
-                        .map(f -> f.getDescription())
-                        .collect(Collectors.joining(", ")));
+                result.setDetails("Route analysis failed: " +
+                        result.getRiskFactors().stream()
+                                .map(f -> f.getDescription())
+                                .collect(Collectors.joining(", ")));
             }
 
         } catch (Exception e) {
-            log.error("Error in delivery route analysis for claim {}: {}", 
-                     claim.getClaimId(), e.getMessage(), e);
+            log.error("Error in delivery route analysis for claim {}: {}",
+                    claim.getClaimId(), e.getMessage(), e);
             result.addRiskFactor("Route analysis error", 0.5);
             result.setValid(false);
         }
@@ -91,10 +91,9 @@ public class DeliveryRouteAnalysisService {
 
         // Calculate distance from worker's typical zone center
         double distanceFromZone = calculateDistanceFromZoneCenter(
-            claim.getGpsLatitude().doubleValue(),
-            claim.getGpsLongitude().doubleValue(),
-            worker.getZoneId()
-        );
+                claim.getGpsLatitude().doubleValue(),
+                claim.getGpsLongitude().doubleValue(),
+                worker.getZoneId());
 
         if (distanceFromZone > MAX_REASONABLE_DELIVERY_RADIUS_KM) {
             return Math.min(distanceFromZone / MAX_REASONABLE_DELIVERY_RADIUS_KM, 1.0);
@@ -115,19 +114,17 @@ public class DeliveryRouteAnalysisService {
         for (Claim currentClaim : recentClaims) {
             if (hasValidGPS(currentClaim) && hasValidGPS(previousClaim)) {
                 double distance = calculateDistance(
-                    previousClaim.getGpsLatitude().doubleValue(),
-                    previousClaim.getGpsLongitude().doubleValue(),
-                    currentClaim.getGpsLatitude().doubleValue(),
-                    currentClaim.getGpsLongitude().doubleValue()
-                );
+                        previousClaim.getGpsLatitude().doubleValue(),
+                        previousClaim.getGpsLongitude().doubleValue(),
+                        currentClaim.getGpsLatitude().doubleValue(),
+                        currentClaim.getGpsLongitude().doubleValue());
 
                 long timeMinutes = ChronoUnit.MINUTES.between(
-                    previousClaim.getCreatedAt(), currentClaim.getCreatedAt()
-                );
+                        previousClaim.getCreatedAt(), currentClaim.getCreatedAt());
 
                 if (timeMinutes > 0) {
                     double speedKmh = (distance / timeMinutes) * 60;
-                    
+
                     if (speedKmh > MAX_REASONABLE_DELIVERY_SPEED_KMH) {
                         totalRisk += 0.8; // Very suspicious speed
                     } else if (speedKmh < MIN_REASONABLE_DELIVERY_SPEED_KMH && distance > 1.0) {
@@ -150,7 +147,7 @@ public class DeliveryRouteAnalysisService {
         // Calculate route efficiency score
         double totalDistance = 0.0;
         double directDistance = 0.0;
-        
+
         List<Claim> allClaims = new java.util.ArrayList<>(recentClaims);
         allClaims.add(0, claim); // Include current claim
 
@@ -158,14 +155,13 @@ public class DeliveryRouteAnalysisService {
         for (int i = 0; i < allClaims.size() - 1; i++) {
             Claim current = allClaims.get(i);
             Claim next = allClaims.get(i + 1);
-            
+
             if (hasValidGPS(current) && hasValidGPS(next)) {
                 totalDistance += calculateDistance(
-                    current.getGpsLatitude().doubleValue(),
-                    current.getGpsLongitude().doubleValue(),
-                    next.getGpsLatitude().doubleValue(),
-                    next.getGpsLongitude().doubleValue()
-                );
+                        current.getGpsLatitude().doubleValue(),
+                        current.getGpsLongitude().doubleValue(),
+                        next.getGpsLatitude().doubleValue(),
+                        next.getGpsLongitude().doubleValue());
             }
         }
 
@@ -173,13 +169,12 @@ public class DeliveryRouteAnalysisService {
         if (hasValidGPS(allClaims.get(0)) && hasValidGPS(allClaims.get(allClaims.size() - 1))) {
             Claim first = allClaims.get(0);
             Claim last = allClaims.get(allClaims.size() - 1);
-            
+
             directDistance = calculateDistance(
-                first.getGpsLatitude().doubleValue(),
-                first.getGpsLongitude().doubleValue(),
-                last.getGpsLatitude().doubleValue(),
-                last.getGpsLongitude().doubleValue()
-            );
+                    first.getGpsLatitude().doubleValue(),
+                    first.getGpsLongitude().doubleValue(),
+                    last.getGpsLatitude().doubleValue(),
+                    last.getGpsLongitude().doubleValue());
         }
 
         if (directDistance > 0) {
@@ -203,8 +198,8 @@ public class DeliveryRouteAnalysisService {
         // Check for clustering of deliveries in short time periods
         if (!recentClaims.isEmpty()) {
             long deliveriesInLastHour = recentClaims.stream()
-                .filter(c -> ChronoUnit.HOURS.between(c.getCreatedAt(), claim.getCreatedAt()) <= 1)
-                .count();
+                    .filter(c -> ChronoUnit.HOURS.between(c.getCreatedAt(), claim.getCreatedAt()) <= 1)
+                    .count();
 
             if (deliveriesInLastHour > 5) {
                 riskScore += 0.5; // Too many deliveries in short time
@@ -216,18 +211,17 @@ public class DeliveryRouteAnalysisService {
             List<Long> intervals = new java.util.ArrayList<>();
             for (int i = 0; i < recentClaims.size() - 1; i++) {
                 long interval = ChronoUnit.MINUTES.between(
-                    recentClaims.get(i + 1).getCreatedAt(),
-                    recentClaims.get(i).getCreatedAt()
-                );
+                        recentClaims.get(i + 1).getCreatedAt(),
+                        recentClaims.get(i).getCreatedAt());
                 intervals.add(interval);
             }
 
             // Calculate variance in intervals
             double avgInterval = intervals.stream().mapToLong(Long::longValue).average().orElse(0.0);
             double variance = intervals.stream()
-                .mapToDouble(interval -> Math.pow(interval - avgInterval, 2))
-                .average()
-                .orElse(0.0);
+                    .mapToDouble(interval -> Math.pow(interval - avgInterval, 2))
+                    .average()
+                    .orElse(0.0);
 
             if (variance < 25 && avgInterval > 0) { // Low variance suggests automation
                 riskScore += 0.4;
@@ -246,8 +240,8 @@ public class DeliveryRouteAnalysisService {
         List<String> recentZones = new java.util.ArrayList<>();
         recentZones.add(claim.getZoneId());
         recentZones.addAll(recentClaims.stream()
-            .map(Claim::getZoneId)
-            .collect(Collectors.toList()));
+                .map(Claim::getZoneId)
+                .collect(Collectors.toList()));
 
         long uniqueZones = recentZones.stream().distinct().count();
         long totalClaims = recentZones.size();
@@ -267,17 +261,16 @@ public class DeliveryRouteAnalysisService {
 
         // Check for multiple claims in very close proximity
         long nearbyClaims = recentClaims.stream()
-            .filter(c -> hasValidGPS(c))
-            .filter(c -> {
-                double distance = calculateDistance(
-                    claim.getGpsLatitude().doubleValue(),
-                    claim.getGpsLongitude().doubleValue(),
-                    c.getGpsLatitude().doubleValue(),
-                    c.getGpsLongitude().doubleValue()
-                );
-                return distance < 0.5; // Within 500 meters
-            })
-            .count();
+                .filter(c -> hasValidGPS(c))
+                .filter(c -> {
+                    double distance = calculateDistance(
+                            claim.getGpsLatitude().doubleValue(),
+                            claim.getGpsLongitude().doubleValue(),
+                            c.getGpsLatitude().doubleValue(),
+                            c.getGpsLongitude().doubleValue());
+                    return distance < 0.5; // Within 500 meters
+                })
+                .count();
 
         if (nearbyClaims > 3) {
             return Math.min(nearbyClaims / 10.0, 1.0);
@@ -295,7 +288,7 @@ public class DeliveryRouteAnalysisService {
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+                        * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return 6371.0 * c; // Earth's radius in km
     }
@@ -304,9 +297,9 @@ public class DeliveryRouteAnalysisService {
         // Simplified zone center calculation
         // In production, this would use actual zone boundaries
         double[][] zoneCenters = {
-            {12.9866, 77.6096}, // zone-001 center
-            {12.9666, 77.5896}, // zone-002 center
-            {13.0166, 77.6296}  // zone-003 center
+                { 12.9866, 77.6096 }, // zone-001 center
+                { 12.9666, 77.5896 }, // zone-002 center
+                { 13.0166, 77.6296 } // zone-003 center
         };
 
         try {
@@ -362,14 +355,37 @@ public class DeliveryRouteAnalysisService {
         }
 
         // Getters and setters
-        public boolean isValid() { return valid; }
-        public void setValid(boolean valid) { this.valid = valid; }
-        public double getOverallRiskScore() { return overallRiskScore; }
-        public void setOverallRiskScore(double overallRiskScore) { this.overallRiskScore = overallRiskScore; }
-        public String getDetails() { return details; }
-        public void setDetails(String details) { this.details = details; }
-        public java.util.List<RiskFactor> getRiskFactors() { return riskFactors; }
-        public void setRiskFactors(java.util.List<RiskFactor> riskFactors) { this.riskFactors = riskFactors; }
+        public boolean isValid() {
+            return valid;
+        }
+
+        public void setValid(boolean valid) {
+            this.valid = valid;
+        }
+
+        public double getOverallRiskScore() {
+            return overallRiskScore;
+        }
+
+        public void setOverallRiskScore(double overallRiskScore) {
+            this.overallRiskScore = overallRiskScore;
+        }
+
+        public String getDetails() {
+            return details;
+        }
+
+        public void setDetails(String details) {
+            this.details = details;
+        }
+
+        public java.util.List<RiskFactor> getRiskFactors() {
+            return riskFactors;
+        }
+
+        public void setRiskFactors(java.util.List<RiskFactor> riskFactors) {
+            this.riskFactors = riskFactors;
+        }
 
         public static class RiskFactor {
             private String description;
@@ -381,10 +397,21 @@ public class DeliveryRouteAnalysisService {
             }
 
             // Getters and setters
-            public String getDescription() { return description; }
-            public void setDescription(String description) { this.description = description; }
-            public double getScore() { return score; }
-            public void setScore(double score) { this.score = score; }
+            public String getDescription() {
+                return description;
+            }
+
+            public void setDescription(String description) {
+                this.description = description;
+            }
+
+            public double getScore() {
+                return score;
+            }
+
+            public void setScore(double score) {
+                this.score = score;
+            }
         }
     }
 }

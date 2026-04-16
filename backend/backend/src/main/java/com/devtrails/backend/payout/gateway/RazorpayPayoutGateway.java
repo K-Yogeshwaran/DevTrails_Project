@@ -35,14 +35,16 @@ public class RazorpayPayoutGateway implements PaymentGateway {
     public PayoutResult initiatePayout(PayoutRequest request) {
         try {
             RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
-            
+
             // Create fund account for the beneficiary
             String fundAccountId = createFundAccount(razorpay, request);
-            
+
             // Create payout
             Map<String, Object> payoutParams = new HashMap<>();
-            payoutParams.put("account_number", request.getUpiId() != null ? request.getUpiId() : request.getAccountNumber());
-            payoutParams.put("amount", request.getAmount().multiply(BigDecimal.valueOf(100)).longValue()); // Convert to paise
+            payoutParams.put("account_number",
+                    request.getUpiId() != null ? request.getUpiId() : request.getAccountNumber());
+            payoutParams.put("amount", request.getAmount().multiply(BigDecimal.valueOf(100)).longValue()); // Convert to
+                                                                                                           // paise
             payoutParams.put("currency", "INR");
             payoutParams.put("mode", request.getUpiId() != null ? "UPI" : "IMPS");
             payoutParams.put("fund_account_id", fundAccountId);
@@ -53,8 +55,8 @@ public class RazorpayPayoutGateway implements PaymentGateway {
 
             // Create payout using Razorpay's API
             com.razorpay.Payout payout = razorpay.payouts.create(payoutParams);
-            
-            log.info("Razorpay payout initiated successfully: {} for amount: {}", 
+
+            log.info("Razorpay payout initiated successfully: {} for amount: {}",
                     payout.get("id"), request.getAmount());
 
             return PayoutResult.builder()
@@ -91,7 +93,7 @@ public class RazorpayPayoutGateway implements PaymentGateway {
         try {
             RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
             com.razorpay.Payout payout = razorpay.payouts.fetch(transactionId);
-            
+
             return PayoutStatus.builder()
                     .transactionId(transactionId)
                     .status(mapRazorpayStatus(payout.get("status").toString()))
@@ -123,24 +125,22 @@ public class RazorpayPayoutGateway implements PaymentGateway {
 
     private String createFundAccount(RazorpayClient razorpay, PayoutRequest request) throws RazorpayException {
         Map<String, Object> fundAccountParams = new HashMap<>();
-        
+
         if (request.getUpiId() != null) {
             // Create UPI fund account
             fundAccountParams.put("customer_id", request.getWorkerId());
             fundAccountParams.put("account_type", "vpa");
             fundAccountParams.put("vpa", Map.of(
-                "address", request.getUpiId(),
-                "name", request.getBeneficiaryName()
-            ));
+                    "address", request.getUpiId(),
+                    "name", request.getBeneficiaryName()));
         } else {
             // Create bank account fund account
             fundAccountParams.put("customer_id", request.getWorkerId());
             fundAccountParams.put("account_type", "bank_account");
             fundAccountParams.put("bank_account", Map.of(
-                "name", request.getBeneficiaryName(),
-                "account_number", request.getAccountNumber(),
-                "ifsc", request.getIfscCode()
-            ));
+                    "name", request.getBeneficiaryName(),
+                    "account_number", request.getAccountNumber(),
+                    "ifsc", request.getIfscCode()));
         }
 
         com.razorpay.FundAccount fundAccount = razorpay.fundAccounts.create(fundAccountParams);
@@ -162,16 +162,16 @@ public class RazorpayPayoutGateway implements PaymentGateway {
     public RefundResult refundPayout(String transactionId, BigDecimal amount, String reason) {
         try {
             RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
-            
+
             Map<String, Object> refundParams = new HashMap<>();
             refundParams.put("payout_id", transactionId);
             refundParams.put("amount", amount.multiply(BigDecimal.valueOf(100)).longValue()); // Convert to paise
             refundParams.put("notes", Map.of("reason", reason));
 
-            // Note: Razorpay doesn't have direct refund for payouts, 
+            // Note: Razorpay doesn't have direct refund for payouts,
             // this would typically be handled through their support
             log.warn("Razorpay refund requested for payout {}: {} - {}", transactionId, amount, reason);
-            
+
             return RefundResult.builder()
                     .success(false)
                     .message("Refunds for payouts must be processed through Razorpay support")
