@@ -1,4 +1,4 @@
-package com.devtrails.backend.payout.gateway;
+/* package com.devtrails.backend.payout.gateway;
 
 import java.math.BigDecimal;
 
@@ -195,3 +195,4 @@ public interface PaymentGateway {
         public void setGatewayResponse(String gatewayResponse) { this.gatewayResponse = gatewayResponse; }
     }
 }
+ */

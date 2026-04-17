@@ -1,14 +1,15 @@
 package com.devtrails.backend.fraud;
 
-import com.devtrails.backend.claims.Claim;
-import com.devtrails.backend.worker.Worker;
-import com.devtrails.backend.worker.WorkerRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.devtrails.backend.claims.Claim;
+import com.devtrails.backend.worker.Worker;
+import com.devtrails.backend.worker.WorkerRepository;
 
 @Service
 public class AdvancedFraudDetectionService {
@@ -248,18 +249,20 @@ public class AdvancedFraudDetectionService {
         return Math.min(riskScore, 1.0);
     }
 
-    private void logFraudDetection(Claim claim, String detectionType, double riskScore, 
-                                  String details, String actionTaken) {
-        FraudDetectionLog log = FraudDetectionLog.of(
-            claim.getClaimId(),
-            claim.getWorkerId(),
-            detectionType,
-            riskScore,
-            details,
-            actionTaken
-        );
-        fraudLogRepository.save(log);
-    }
+    private void logFraudDetection(Claim claim, String detectionType, double riskScore,
+                              String details, String actionTaken) {
+
+    FraudDetectionLog log = FraudDetectionLog.of(
+        claim.getClaimId(),
+        claim.getWorkerId(),
+        detectionType,
+        java.math.BigDecimal.valueOf(riskScore), // ✅ FIXED
+        details,
+        actionTaken
+    );
+
+    fraudLogRepository.save(log); // assuming this line continues
+}
 
     public static class AdvancedFraudResult {
         private String claimId;

@@ -1,4 +1,4 @@
-package com.devtrails.backend.payout.gateway;
+/* package com.devtrails.backend.payout.gateway;
 
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -186,3 +186,4 @@ public class RazorpayPayoutGateway implements PaymentGateway {
         }
     }
 }
+ */

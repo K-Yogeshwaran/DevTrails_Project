@@ -1,4 +1,4 @@
-package com.devtrails.backend.payout.gateway;
+/* package com.devtrails.backend.payout.gateway;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -243,3 +243,4 @@ public class StripePayoutGateway implements PaymentGateway {
         return parts.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length)) : "User";
     }
 }
+ */

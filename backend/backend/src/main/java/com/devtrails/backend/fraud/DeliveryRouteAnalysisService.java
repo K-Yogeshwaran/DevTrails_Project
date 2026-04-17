@@ -1,15 +1,15 @@
 package com.devtrails.backend.fraud;
 
-import com.devtrails.backend.claims.Claim;
-import com.devtrails.backend.worker.Worker;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.devtrails.backend.claims.Claim;
+import com.devtrails.backend.worker.Worker;
 
 @Service
 public class DeliveryRouteAnalysisService {
@@ -23,7 +23,7 @@ public class DeliveryRouteAnalysisService {
     public RouteAnalysisResult analyzeDeliveryRoute(Claim claim, Worker worker, List<Claim> recentClaims) {
         RouteAnalysisResult result = new RouteAnalysisResult();
         result.setValid(true);
-        result.setRiskScore(0.0);
+      /*   result.setRiskScore(0.0); */
         result.setDetails("Route analysis passed");
 
         try {

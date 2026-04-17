@@ -20,11 +20,10 @@ public interface DashboardAnalyticsRepository extends JpaRepository<DashboardAna
             "COALESCE(COUNT(c.claimId), 0), " +
             "COALESCE(COUNT(CASE WHEN c.status = 'approved' THEN 1 END), 0), " +
             "COALESCE(COUNT(CASE WHEN c.status = 'rejected' THEN 1 END), 0), " +
-            "COALESCE(SUM(CASE WHEN p.status = 'COMPLETED' THEN p.amount ELSE 0 END), 0.0), " +
+            "COALESCE(SUM(CASE WHEN c.status = 'approved' THEN c.payoutAmount ELSE 0 END), 0.0), " +
             "w.dailyEarnings, w.activeHours, w.experienceMonths, w.daysPerWeek) " +
             "FROM Worker w " +
             "LEFT JOIN Claim c ON w.workerId = c.workerId " +
-            "LEFT JOIN Payout p ON c.claimId = p.claimId AND p.status = 'COMPLETED' " +
             "WHERE w.workerId = :workerId " +
             "GROUP BY w.workerId, w.name, w.zoneId, w.persona, w.dailyEarnings, w.activeHours, w.experienceMonths, w.daysPerWeek")
     Optional<WorkerDashboardData> getWorkerDashboardData(@Param("workerId") String workerId);
@@ -33,7 +32,7 @@ public interface DashboardAnalyticsRepository extends JpaRepository<DashboardAna
     @Query("SELECT new com.devtrails.backend.dashboard.InsurerDashboardData(" +
             "COUNT(c.claimId), " +
             "COALESCE(SUM(c.payoutAmount), 0.0), " +
-            "COALESCE(SUM(CASE WHEN p.status = 'COMPLETED' THEN p.amount ELSE 0 END), 0.0), " +
+            "COALESCE(SUM(CASE WHEN c.status = 'approved' THEN c.payoutAmount ELSE 0 END), 0.0), " +
             "COALESCE(SUM(CASE WHEN c.status = 'approved' THEN 1 ELSE 0 END), 0), " +
             "COALESCE(SUM(CASE WHEN c.status = 'rejected' THEN 1 ELSE 0 END), 0), " +
             "COALESCE(SUM(CASE WHEN c.status = 'flagged' THEN 1 ELSE 0 END), 0), " +
@@ -41,15 +40,8 @@ public interface DashboardAnalyticsRepository extends JpaRepository<DashboardAna
             "COUNT(DISTINCT w.zoneId), " +
             "COALESCE(AVG(w.dailyEarnings), 0.0)) " +
             "FROM Claim c " +
-            "LEFT JOIN Payout p ON c.claimId = p.claimId " +
             "LEFT JOIN Worker w ON c.workerId = w.workerId " +
-            "WHERE c.createdAt >= :since " +
-            "GROUP BY COUNT(c.claimId), COALESCE(SUM(c.payoutAmount), 0.0), " +
-            "COALESCE(SUM(CASE WHEN p.status = 'COMPLETED' THEN p.amount ELSE 0 END), 0.0), " +
-            "COALESCE(SUM(CASE WHEN c.status = 'approved' THEN 1 ELSE 0 END), 0), " +
-            "COALESCE(SUM(CASE WHEN c.status = 'rejected' THEN 1 ELSE 0 END), 0), " +
-            "COALESCE(SUM(CASE WHEN c.status = 'flagged' THEN 1 ELSE 0 END), 0), " +
-            "COUNT(DISTINCT w.workerId), COUNT(DISTINCT w.zoneId), COALESCE(AVG(w.dailyEarnings), 0.0)")
+            "WHERE c.createdAt >= :since")
     Optional<InsurerDashboardData> getInsurerDashboardData(@Param("since") LocalDateTime since);
 
     // Predictive analytics queries
