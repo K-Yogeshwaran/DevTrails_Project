@@ -13,6 +13,9 @@ redis==5.0.1
 # HTTP client for external API calls (weather, AQI, backend APIs)
 requests==2.31.0
 
+# Environment variable management
+python-dotenv==1.0.0
+
 # Python standard library modules used (no installation needed):
 # - logging
 # - time

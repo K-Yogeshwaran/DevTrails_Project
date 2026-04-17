@@ -1,12 +1,18 @@
 import json
 import logging
+import os
+from dotenv import load_dotenv
 import redis
+
+# Load environment variables from .env file
+load_dotenv()
 
 log = logging.getLogger(__name__)
 
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
-REDIS_DB   = 0
+# Redis Configuration
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_DB   = int(os.getenv("REDIS_DB", "0"))
 
 # Key patterns
 # active_worker:{worker_id}  → JSON worker record

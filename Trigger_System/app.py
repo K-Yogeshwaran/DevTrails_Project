@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from datetime import datetime, timezone
 from flask import Flask, jsonify, request
@@ -20,7 +21,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "gigshield-dev-secret-2026"
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "gigshield-dev-secret-2026")
 CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
@@ -442,5 +443,10 @@ if __name__ == "__main__":
     start_scheduler()
     log.info("Running initial poll cycle on startup...")
     poll_all_zones()
-    log.info(f"Server starting on http://localhost:5001 | {len(ZONES)} zones loaded")
-    socketio.run(app, host="0.0.0.0", port=5001, debug=False, allow_unsafe_werkzeug=True)
+    
+    # Get server configuration from environment variables
+    server_host = os.getenv("TRIGGER_SERVER_HOST", "0.0.0.0")
+    server_port = int(os.getenv("TRIGGER_SERVER_PORT", "5001"))
+    
+    log.info(f"Server starting on http://{server_host}:{server_port} | {len(ZONES)} zones loaded")
+    socketio.run(app, host=server_host, port=server_port, debug=False, allow_unsafe_werkzeug=True)

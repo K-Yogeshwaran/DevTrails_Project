@@ -1,6 +1,11 @@
+import os
 from flask import Flask, jsonify, request
 from datetime import datetime, timezone
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
@@ -180,7 +185,10 @@ def verify_platform_user():
 
 
 if __name__ == "__main__":
-    print("Mock Platform API running on http://localhost:5002")
+    # Get port from environment variable or use default
+    mock_port = int(os.getenv("MOCK_API_PORT", "5002"))
+    
+    print(f"Mock Platform API running on http://localhost:{mock_port}")
     print("Endpoints:")
     print("  GET  /api/status")
     print("  GET  /api/status/<platform>")
@@ -188,4 +196,4 @@ if __name__ == "__main__":
     print("  POST /api/status/<platform>/up")
     print("  POST /api/status/<platform>/degraded")
     print(" POST /api/status/<platform>/verify-user")
-    app.run(host="0.0.0.0", port=5002, debug=False)
+    app.run(host="0.0.0.0", port=mock_port, debug=False)
