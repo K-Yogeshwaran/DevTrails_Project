@@ -51,7 +51,7 @@ function AdminDashboard() {
     }, []);
 
     const api = async (path) => {
-        const res = await fetch(`${import.meta.env.BACKEND_API_URL}${path}`, {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}${path}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }
         });
         if (!res.ok) throw new Error(`${res.status}`);
@@ -65,8 +65,8 @@ function AdminDashboard() {
                 api("/api/admin/workers"),
                 api("/api/admin/policies"),
                 api("/api/admin/claims/flagged"),
-                fetch(`${import.meta.env.TRIGGER_API_URL}/zones`).then(r => r.json()),
-                fetch(`${import.meta.env.TRIGGER_API_URL}/zones/active`).then(r => r.json()).catch(() => ({})),
+                fetch(`${import.meta.env.VITE_TRIGGER_API_URL}/zones`).then(r => r.json()),
+                fetch(`${import.meta.env.VITE_TRIGGER_API_URL}/zones/active`).then(r => r.json()).catch(() => ({})),
             ]);
             setStats(s); setWorkerStats(w); setPolicyStats(p);
             setFlaggedClaims(f); setAllZones(z); setActiveZones(az);
@@ -85,15 +85,15 @@ function AdminDashboard() {
             } catch { return "down"; }
         };
         const [backend, trigger, ml] = await Promise.all([
-            check(`${import.meta.env.BACKEND_API_URL}/workers/health`),
-            check(`${import.meta.env.TRIGGER_API_URL}/health`),
-            check(`${import.meta.env.PREMIUM_API_URL}/payout/health`),
+            check(`${import.meta.env.VITE_BACKEND_API_URL}/workers/health`),
+            check(`${import.meta.env.VITE_TRIGGER_API_URL}/health`),
+            check(`${import.meta.env.VITE_PREMIUM_API_URL}/payout/health`),
         ]);
         setServices({ backend, trigger, ml });
     };
 
     const connectSocket = () => {
-        const socket = io(import.meta.env.SOCKET_URL, { transports: ["polling"] });
+        const socket = io(import.meta.env.VITE_SOCKET_URL, { transports: ["polling"] });
         socketRef.current = socket;
         socket.on("trigger_fired", (event) => {
             setLiveFeed(prev => [{ ...event, receivedAt: new Date().toLocaleTimeString() }, ...prev].slice(0, 50));
@@ -108,7 +108,7 @@ function AdminDashboard() {
         setTriggerLoading(true); setTriggerMsg("");
         const chosen = TRIGGER_TYPES.find(t => t.key === triggerType);
         try {
-            const res = await fetch(`${import.meta.env.TRIGGER_API_URL}/triggers/manual`, {
+            const res = await fetch(`${import.meta.env.VITE_TRIGGER_API_URL}/triggers/manual`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ zone_id: triggerZone, trigger_type: triggerType, value: chosen?.value ?? 45 }),
@@ -126,7 +126,7 @@ function AdminDashboard() {
 
     const handleClaim = async (claimId, action) => {
         try {
-            await fetch(`${import.meta.env.BACKEND_API_URL}/admin/claims/${claimId}/${action}`, {
+            await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/admin/claims/${claimId}/${action}`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
             });

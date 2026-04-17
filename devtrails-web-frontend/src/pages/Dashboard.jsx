@@ -156,7 +156,7 @@ function Dashboard() {
 
     const connectSocket = () => {
         if (socketRef.current?.connected) return;
-        const socket = io(import.meta.env.SOCKET_URL || "http://localhost:5001", {
+        const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:5001", {
             transports: ["polling"],
             reconnectionAttempts: 5,
             reconnectionDelay: 2000,
@@ -201,7 +201,7 @@ function Dashboard() {
                     const { latitude: lat, longitude: lon } = pos.coords;
                     try {
                         // Resolve nearest zone from trigger engine
-                        const zoneRes = await fetch(`${import.meta.env.TRIGGER_API_URL}/workers/resolve-zone` || "http://localhost:5001/api/workers/resolve-zone", {
+                        const zoneRes = await fetch(`${import.meta.env.VITE_TRIGGER_API_URL}/workers/resolve-zone` || "http://localhost:5001/api/workers/resolve-zone", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ lat, lon }),
@@ -209,7 +209,7 @@ function Dashboard() {
                         const zoneData = await zoneRes.json();
 
                         // Register in trigger engine with GPS coords
-                        await fetch(`${import.meta.env.TRIGGER_API_URL}/workers/register` || "http://localhost:5001/api/workers/register", {
+                        await fetch(`${import.meta.env.VITE_TRIGGER_API_URL}/workers/register` || "http://localhost:5001/api/workers/register", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -279,7 +279,7 @@ function Dashboard() {
     const goOffline = async () => {
         setOnlineLoading(true);
         try {
-            await fetch(`${import.meta.env.TRIGGER_API_URL}/workers/deregister` || "http://localhost:5001/api/workers/deregister", {
+            await fetch(`${import.meta.env.VITE_TRIGGER_API_URL}/workers/deregister` || "http://localhost:5001/api/workers/deregister", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ worker_id: workerId, zone_id: activeZoneId }),
@@ -303,7 +303,7 @@ function Dashboard() {
         setSimMsg("");
         const chosen = TRIGGER_TYPES.find(t => t.key === simType);
         try {
-            const res = await fetch(`${import.meta.env.TRIGGER_API_URL}/triggers/manual` || "http://localhost:5001/api/triggers/manual", {
+            const res = await fetch(`${import.meta.env.VITE_TRIGGER_API_URL}/triggers/manual` || "http://localhost:5001/api/triggers/manual", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
