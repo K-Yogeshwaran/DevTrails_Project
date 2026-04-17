@@ -158,8 +158,10 @@ function Dashboard() {
         if (socketRef.current?.connected) return;
         const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:5001", {
             transports: ["polling"],
-            reconnectionAttempts: 5,
-            reconnectionDelay: 2000,
+            reconnectionAttempts: 3,
+            reconnectionDelay: 5000,
+            reconnectionDelayMax: 15000,
+            timeout: 10000,
         });
         socketRef.current = socket;
 

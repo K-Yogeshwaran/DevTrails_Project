@@ -25,12 +25,13 @@ const TIERS = [
     },
 ];
 
-const SEASONS = [
-    { key: "summer",  label: "☀️ Summer" },
-    { key: "monsoon", label: "🌧️ Monsoon" },
-    { key: "winter",  label: "❄️ Winter" },
-    { key: "spring",  label: "🌸 Spring" },
-];
+function getCurrentSeason() {
+    const month = new Date().getMonth() + 1; // 1–12
+    if (month >= 6 && month <= 9)  return "monsoon"; // Jun–Sep
+    if (month >= 11 || month <= 1) return "winter";  // Nov–Jan
+    if (month >= 2 && month <= 3)  return "spring";  // Feb–Mar
+    return "summer";                                  // Apr–May, Oct
+}
 
 function Policy() {
     const navigate  = useNavigate();
@@ -39,7 +40,7 @@ function Policy() {
     const [policy,    setPolicy]    = useState(null);
     const [history,   setHistory]   = useState([]);
     const [tier,      setTier]      = useState("standard");
-    const [season,    setSeason]    = useState("summer");
+    const season = getCurrentSeason();
     const [loading,   setLoading]   = useState(true);
     const [submitting,setSubmitting]= useState(false);
     const [error,     setError]     = useState("");
@@ -187,20 +188,6 @@ function Policy() {
                                         {t.features.map((f, i) => <li key={i}>{f}</li>)}
                                     </ul>
                                 </div>
-                            ))}
-                        </div>
-
-                        {/* Season selector */}
-                        <p className="tier-section-title">Current Season</p>
-                        <div className="season-row">
-                            {SEASONS.map((s) => (
-                                <button
-                                    key={s.key}
-                                    className={`season-btn ${season === s.key ? "selected" : ""}`}
-                                    onClick={() => setSeason(s.key)}
-                                >
-                                    {s.label}
-                                </button>
                             ))}
                         </div>
 
