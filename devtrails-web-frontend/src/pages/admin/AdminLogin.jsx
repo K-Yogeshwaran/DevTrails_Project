@@ -13,7 +13,7 @@ function AdminLogin() {
         if (!username || !password) { setError("Username and password required."); return; }
         setError(""); setLoading(true);
         try {
-            const res = await fetch("http://localhost:8080/api/admin/login", {
+            const res = await fetch(`${import.meta.env.BACKEND_API_URL}/admin/login` || "http://localhost:8080/api/admin/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),

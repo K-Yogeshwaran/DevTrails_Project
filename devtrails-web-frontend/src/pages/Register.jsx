@@ -78,7 +78,7 @@ function Register() {
 
         // Actual API call
         try {
-            const res = await fetch("http://localhost:5002/api/platform/verify-user", {
+            const res = await fetch(import.meta.env.PLATFORM_VERIFY_URL || "http://localhost:5001/api/platform/verify-user", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ platform }),
@@ -109,7 +109,7 @@ function Register() {
             async (pos) => {
                 try {
                     const { latitude: lat, longitude: lon } = pos.coords;
-                    const res = await fetch("http://localhost:5001/api/zones");
+                    const res = await fetch(import.meta.env.TRIGGER_API_URL + "/zones" || "http://localhost:5001/api/zones");
                     const zones = await res.json();
 
                     let selected = "";
@@ -191,7 +191,7 @@ function Register() {
             const res = await API.post("/workers/register", payload);
             const workerId = res.data.workerId;
 
-            await fetch("http://localhost:5001/api/workers/register", {
+            await fetch(import.meta.env.TRIGGER_API_URL + "/workers/register" || "http://localhost:5001/api/workers/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
