@@ -1,16 +1,20 @@
-# Build stage
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# Stage 1: Build the application
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+
 WORKDIR /app
-COPY . .
+
+COPY pom.xml .
+COPY src ./src
+
 RUN mvn clean package -DskipTests
 
-# Runtime stage
-FROM eclipse-temurin:21-jre-jammy
+# Stage 2: Run the application
+FROM eclipse-temurin:17-jdk
+
 WORKDIR /app
+
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose port (Render/Railway will use this)
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-Dserver.port=${PORT:8080}", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
