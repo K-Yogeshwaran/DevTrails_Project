@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "gigshield-dev-secret-2026")
-CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
+CORS(app, resources={r"/api/*": {"origins": ["https://gigshield-devtrails-techx.vercel.app", "http://localhost:5173"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 

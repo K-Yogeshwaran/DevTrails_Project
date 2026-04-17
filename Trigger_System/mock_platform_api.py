@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
+CORS(app, resources={r"/api/*": {"origins": ["https://gigshield-devtrails-techx.vercel.app", "http://localhost:5173"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
 platform_state = {
     "swiggy": {

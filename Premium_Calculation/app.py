@@ -11,7 +11,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://gigshield-devtrails-techx.vercel.app", "http://localhost:5173"])
 
 _model, _encoders = load_model()
 if _model is None:
