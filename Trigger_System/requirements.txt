@@ -1,0 +1,21 @@
+# Trigger System Python Backend Dependencies
+# Core web framework and real-time communication
+Flask==2.3.3
+Flask-SocketIO==5.3.6
+Flask-CORS==4.0.0
+
+# Task scheduling for background polling
+APScheduler==3.10.4
+
+# Redis client for worker and zone state management
+redis==5.0.1
+
+# HTTP client for external API calls (weather, AQI, backend APIs)
+requests==2.31.0
+
+# Python standard library modules used (no installation needed):
+# - logging
+# - time
+# - datetime
+# - json
+# - random
