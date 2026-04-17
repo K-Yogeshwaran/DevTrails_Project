@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/themes/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/providers/auth_provider.dart';
@@ -136,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await authProvider.register(workerData);
 
       if (authProvider.isAuthenticated) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        context.go('/dashboard');
       } else if (authProvider.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -208,7 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Create Account',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/themes/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/providers/auth_provider.dart';
@@ -34,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (authProvider.isAuthenticated) {
         // Navigate to dashboard
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        context.go('/dashboard');
       } else if (authProvider.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -195,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Register Link
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/register');
+                            context.go('/register');
                           },
                           child: const Text("Don't have an account? Create one"),
                         ),
@@ -210,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Admin Login Link
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/admin/login');
+                  context.go('/admin/login');
                 },
                 child: Text(
                   'Admin Login',
