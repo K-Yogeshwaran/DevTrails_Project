@@ -427,7 +427,8 @@ function AdminDashboard() {
                             </div>
                         )}
                     </div>
-                {/* ── ANALYTICS TAB ── */}
+                )}
+                {/* ANALYTICS TAB */}
                 {tab === "analytics" && (
                     <AdminAnalytics api={api} />
                 )}
